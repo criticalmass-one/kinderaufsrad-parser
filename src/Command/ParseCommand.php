@@ -41,11 +41,12 @@ class ParseCommand extends Command
 
             $h2List = $elementCrawler->filter('h2');
             $title = null;
+            $city = null;
 
             foreach ($h2List as $h2Element) {
                 if ($h2Element->textContent) {
                     $title = $h2Element->textContent;
-
+                    $city = str_replace('Kidical Mass ', '', $title);
                 }
             }
 
@@ -72,19 +73,23 @@ class ParseCommand extends Command
             $location = null;
 
             foreach ($locationList as $locationElement) {
-                if (strpos($locationElement->textContent, 'Start: ') === 0) {
-                    $location = $locationElement->textContent;
+                $locationString = $locationElement->textContent;
+                if (strpos($locationString, 'Start: ') === 0 && strpos($locationString, 'folgt') === false) {
+                    $location = str_replace('Start: ', '', $locationString);
                 }
             }
 
-            $rideList[] = [
-                'title' => $title,
-                'dateTime' => $dateTime ? $dateTime->format('Y-m-d H:i') : null,
-                'location' => $location,
-            ];
+            if (!empty($city)) {
+                $rideList[] = [
+                    'city' => $city,
+                    'title' => $title,
+                    'dateTime' => $dateTime ? $dateTime->format('Y-m-d H:i') : '',
+                    'location' => $location,
+                ];
+            }
         });
 
-        $io->table(['Title', 'DateTime', 'Location'], $rideList);
+        $io->table(['City', 'Title', 'DateTime', 'Location'], $rideList);
 
         return Command::SUCCESS;
     }
