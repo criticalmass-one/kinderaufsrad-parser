@@ -2,6 +2,7 @@
 
 namespace App\Command;
 
+use App\Model\Ride;
 use Carbon\Carbon;
 use maxh\Nominatim\Nominatim;
 use Symfony\Component\Console\Command\Command;
@@ -37,22 +38,29 @@ class ParseCommand extends Command
         $rideList = [];
 
         $crawler->each(function (Crawler $elementCrawler) use (&$rideList) {
+            $ride = new Ride();
+
             $elementHtml = $elementCrawler->attr('data-html');
             $elementCrawler = new Crawler($elementHtml);
 
             $h2List = $elementCrawler->filter('h2');
-            $title = null;
-            $city = null;
 
             foreach ($h2List as $h2Element) {
                 if ($h2Element->textContent) {
                     $title = $h2Element->textContent;
                     $city = str_replace('Kidical Mass ', '', $title);
+
+                    $ride
+                        ->setTitle($title)
+                        ->setCityName($city);
                 }
             }
 
+            if (!$ride->getCityName()) {
+                return;
+            }
+
             $dateTimeList = $elementCrawler->filter('p > b > span');
-            $dateTime = null;
 
             foreach ($dateTimeList as $dateTimeElement) {
                 $germanDateTimeSpec = $dateTimeElement->textContent;
@@ -60,10 +68,14 @@ class ParseCommand extends Command
 
                 try {
                     $dateTime = Carbon::parseFromLocale($germanDateTimeSpec);
+
+                    $ride->setDateTime($dateTime);
                 } catch (\Exception $exception) {
                     try {
                         $germanDateTimeSpec = str_replace(['x', 'X'], '', $germanDateTimeSpec);
                         $dateTime = Carbon::parseFromLocale($germanDateTimeSpec);
+
+                        $ride->setDateTime($dateTime);
                     } catch (\Exception $exception) {
 
                     }
@@ -71,19 +83,17 @@ class ParseCommand extends Command
             }
 
             $locationList = $elementCrawler->filter('div span');
-            $location = null;
 
             foreach ($locationList as $locationElement) {
                 $locationString = $locationElement->textContent;
                 if (strpos($locationString, 'Start: ') === 0 && strpos($locationString, 'folgt') === false) {
                     $location = str_replace('Start: ', '', $locationString);
+
+                    $ride->setLocation($location);
                 }
             }
 
-            $latitude = null;
-            $longitude = null;
-
-            if ($location && $city) {
+            if ($ride->getLocation() && $ride->getCityName()) {
                 $nominatim = new Nominatim('http://nominatim.openstreetmap.org/');
 
                 $search = $nominatim->newSearch()
@@ -98,24 +108,18 @@ class ParseCommand extends Command
                 if (1 === count($resultList)) {
                     $result = array_pop($resultList);
 
-                    $latitude = $result['lat'];
-                    $longitude = $result['lon'];
+                    $ride
+                        ->setLatitude($result['lat'])
+                        ->setLongitude($result['lon']);
                 }
             }
 
-            if (!empty($city)) {
-                $rideList[] = [
-                    'city' => $city,
-                    'title' => $title,
-                    'dateTime' => $dateTime ? $dateTime->format('Y-m-d H:i') : '',
-                    'location' => $location,
-                    'latitude' => $latitude,
-                    'longitude' => $longitude,
-                ];
-            }
+            $rideList[] = $ride;
         });
 
-        $io->table(['City', 'Title', 'DateTime', 'Location', 'Latitude', 'Longitude'], $rideList);
+        $io->table(['City', 'Title', 'DateTime', 'Location', 'Latitude', 'Longitude'], array_map(function (Ride $ride): array {
+            return [$ride->getCityName(), $ride->getTitle(), $ride->hasDateTime() ? $ride->getDateTime()->format('Y-m-d H:i') : '', $ride->getLocation(), $ride->getLatitude(), $ride->getLongitude()];
+        }, $rideList));
 
         return Command::SUCCESS;
     }
