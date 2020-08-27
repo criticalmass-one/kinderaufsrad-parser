@@ -2,6 +2,7 @@
 
 namespace App\Command;
 
+use Carbon\Carbon;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -39,22 +40,52 @@ class ParseCommand extends Command
             $elementCrawler = new Crawler($elementHtml);
 
             $h2List = $elementCrawler->filter('h2');
-
             $title = null;
 
-            foreach ($h2List as $h2) {
-                if ($h2->textContent) {
-                    $title = $h2->textContent;
+            foreach ($h2List as $h2Element) {
+                if ($h2Element->textContent) {
+                    $title = $h2Element->textContent;
+
+                }
+            }
+
+            $dateTimeList = $elementCrawler->filter('p > b > span');
+            $dateTime = null;
+
+            foreach ($dateTimeList as $dateTimeElement) {
+                $germanDateTimeSpec = $dateTimeElement->textContent;
+                $germanDateTimeSpec = str_replace([',', 'Uhr', 'März', 'Septmber'], ['', '', '03.', '09.'], $germanDateTimeSpec);
+
+                try {
+                    $dateTime = Carbon::parseFromLocale($germanDateTimeSpec);
+                } catch (\Exception $exception) {
+                    try {
+                        $germanDateTimeSpec = str_replace(['x', 'X'], '', $germanDateTimeSpec);
+                        $dateTime = Carbon::parseFromLocale($germanDateTimeSpec);
+                    } catch (\Exception $exception) {
+
+                    }
+                }
+            }
+
+            $locationList = $elementCrawler->filter('div span');
+            $location = null;
+
+            foreach ($locationList as $locationElement) {
+                if (strpos($locationElement->textContent, 'Start: ') === 0) {
+                    $location = $locationElement->textContent;
                 }
             }
 
             $rideList[] = [
                 'title' => $title,
+                'dateTime' => $dateTime ? $dateTime->format('Y-m-d H:i') : null,
+                'location' => $location,
             ];
         });
-        
-        dump($rideList);
-        
+
+        $io->table(['Title', 'DateTime', 'Location'], $rideList);
+
         return Command::SUCCESS;
     }
 }
