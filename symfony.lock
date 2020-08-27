@@ -11,6 +11,9 @@
     "guzzlehttp/psr7": {
         "version": "1.6.1"
     },
+    "maxh/php-nominatim": {
+        "version": "2.2.0"
+    },
     "nesbot/carbon": {
         "version": "2.39.0"
     },

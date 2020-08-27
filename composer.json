@@ -6,6 +6,7 @@
         "ext-ctype": "*",
         "ext-iconv": "*",
         "guzzlehttp/guzzle": "^7.0",
+        "maxh/php-nominatim": "^2.2",
         "nesbot/carbon": "^2.39",
         "symfony/console": "5.1.*",
         "symfony/css-selector": "5.1.*",

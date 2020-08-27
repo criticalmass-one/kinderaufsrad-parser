@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "11ac7ffc1a3489252d039f84ab72a833",
+    "content-hash": "0dafe8e9194b2ee472b61b220f91c7a0",
     "packages": [
         {
             "name": "guzzlehttp/guzzle",
@@ -208,6 +208,61 @@
                 "url"
             ],
             "time": "2019-07-01T23:21:34+00:00"
+        },
+        {
+            "name": "maxh/php-nominatim",
+            "version": "2.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/maxhelias/php-nominatim.git",
+                "reference": "7bd5fd76fb87625dd52bb459cb89df2b06937dd7"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/maxhelias/php-nominatim/zipball/7bd5fd76fb87625dd52bb459cb89df2b06937dd7",
+                "reference": "7bd5fd76fb87625dd52bb459cb89df2b06937dd7",
+                "shasum": ""
+            },
+            "require": {
+                "ext-mbstring": "*",
+                "guzzlehttp/guzzle": "@stable",
+                "php": ">=7.0"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "dev-master",
+                "phpro/grumphp": "dev-master",
+                "phpunit/phpunit": "6.5.*",
+                "squizlabs/php_codesniffer": "dev-master"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "maxh\\Nominatim\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Maxime Helias",
+                    "email": "maximehelias16@gmail.com",
+                    "homepage": "http://maximehelias.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Wrapper for Nominatim API",
+            "homepage": "https://github.com/maxhelias/php-nominatim",
+            "keywords": [
+                "geo",
+                "geolocation",
+                "nominatim",
+                "open street map",
+                "osm",
+                "web service"
+            ],
+            "time": "2018-08-27T08:58:26+00:00"
         },
         {
             "name": "nesbot/carbon",

@@ -3,6 +3,7 @@
 namespace App\Command;
 
 use Carbon\Carbon;
+use maxh\Nominatim\Nominatim;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -79,17 +80,42 @@ class ParseCommand extends Command
                 }
             }
 
+            $latitude = null;
+            $longitude = null;
+
+            if ($location && $city) {
+                $nominatim = new Nominatim('http://nominatim.openstreetmap.org/');
+
+                $search = $nominatim->newSearch()
+                    ->country('Germany')
+                    ->city($city)
+                    ->query($location)
+                    ->addressDetails()
+                    ->limit(1);
+
+                $resultList = $nominatim->find($search);
+
+                if (1 === count($resultList)) {
+                    $result = array_pop($resultList);
+
+                    $latitude = $result['lat'];
+                    $longitude = $result['lon'];
+                }
+            }
+
             if (!empty($city)) {
                 $rideList[] = [
                     'city' => $city,
                     'title' => $title,
                     'dateTime' => $dateTime ? $dateTime->format('Y-m-d H:i') : '',
                     'location' => $location,
+                    'latitude' => $latitude,
+                    'longitude' => $longitude,
                 ];
             }
         });
 
-        $io->table(['City', 'Title', 'DateTime', 'Location'], $rideList);
+        $io->table(['City', 'Title', 'DateTime', 'Location', 'Latitude', 'Longitude'], $rideList);
 
         return Command::SUCCESS;
     }
