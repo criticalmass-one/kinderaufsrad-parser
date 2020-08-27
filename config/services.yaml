@@ -34,3 +34,6 @@ services:
 
     App\LocationCoordLookup\LocationCoordLookupInterface:
         alias: App\LocationCoordLookup\CachedLocationCoordLookup
+
+    App\CityFetcher\CityFetcherInterface:
+        alias: App\CityFetcher\CachedCityFetcher
