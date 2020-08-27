@@ -1,11 +1,9 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Command;
 
-use App\LocationCoordLookup\LocationCoordLookupInterface;
 use App\Model\Ride;
-use Carbon\Carbon;
-use maxh\Nominatim\Nominatim;
+use App\RideBuilder\RideBuilderInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -18,11 +16,11 @@ class ParseCommand extends Command
 {
     protected static $defaultName = 'kidicalmass:parse';
 
-    protected LocationCoordLookupInterface $locationCoordLookup;
+    protected RideBuilderInterface $rideBuilder;
 
-    public function __construct(LocationCoordLookupInterface $locationCoordLookup, string $name = null)
+    public function __construct(RideBuilderInterface $rideBuilder, string $name = null)
     {
-        $this->locationCoordLookup = $locationCoordLookup;
+        $this->rideBuilder = $rideBuilder;
 
         parent::__construct($name);
     }
@@ -48,62 +46,11 @@ class ParseCommand extends Command
         $rideList = [];
 
         $crawler->each(function (Crawler $elementCrawler) use (&$rideList) {
-            $ride = new Ride();
 
             $elementHtml = $elementCrawler->attr('data-html');
-            $elementCrawler = new Crawler($elementHtml);
+            $crawler = new Crawler($elementHtml);
 
-            $h2List = $elementCrawler->filter('h2');
-
-            foreach ($h2List as $h2Element) {
-                if ($h2Element->textContent) {
-                    $title = $h2Element->textContent;
-                    $city = str_replace('Kidical Mass ', '', $title);
-
-                    $ride
-                        ->setTitle($title)
-                        ->setCityName($city);
-                }
-            }
-
-            if (!$ride->getCityName()) {
-                return;
-            }
-
-            $dateTimeList = $elementCrawler->filter('p > b > span');
-
-            foreach ($dateTimeList as $dateTimeElement) {
-                $germanDateTimeSpec = $dateTimeElement->textContent;
-                $germanDateTimeSpec = str_replace([',', 'Uhr', 'März', 'Septmber'], ['', '', '03.', '09.'], $germanDateTimeSpec);
-
-                try {
-                    $dateTime = Carbon::parseFromLocale($germanDateTimeSpec);
-
-                    $ride->setDateTime($dateTime);
-                } catch (\Exception $exception) {
-                    try {
-                        $germanDateTimeSpec = str_replace(['x', 'X'], '', $germanDateTimeSpec);
-                        $dateTime = Carbon::parseFromLocale($germanDateTimeSpec);
-
-                        $ride->setDateTime($dateTime);
-                    } catch (\Exception $exception) {
-
-                    }
-                }
-            }
-
-            $locationList = $elementCrawler->filter('div span');
-
-            foreach ($locationList as $locationElement) {
-                $locationString = $locationElement->textContent;
-                if (strpos($locationString, 'Start: ') === 0 && strpos($locationString, 'folgt') === false) {
-                    $location = str_replace('Start: ', '', $locationString);
-
-                    $ride->setLocation($location);
-                }
-            }
-
-            $this->locationCoordLookup->lookupCoordsForRideLocation($ride);
+            $ride = $this->rideBuilder->buildWithCrawler($crawler);
 
             $rideList[] = $ride;
         });
