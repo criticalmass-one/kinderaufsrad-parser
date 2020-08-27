@@ -2,6 +2,7 @@
 
 namespace App\Model;
 
+use App\Model\City;
 use JMS\Serializer\Annotation as JMS;
 
 /**
@@ -15,6 +16,11 @@ class Ride
     protected ?int $id = null;
 
     protected ?string $cityName = null;
+
+    /**
+     * @JMS\Expose
+     */
+    protected ?City $city = null;
 
     /**
      * @JMS\Expose
@@ -85,6 +91,19 @@ class Ride
     public function getCityName(): ?string
     {
         return $this->cityName;
+
+    }
+
+    public function setCity(City $city = null): self
+    {
+        $this->city = $city;
+
+        return $this;
+    }
+
+    public function getCity(): ?City
+    {
+        return $this->city;
 
     }
 

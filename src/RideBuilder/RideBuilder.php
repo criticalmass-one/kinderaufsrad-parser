@@ -2,18 +2,22 @@
 
 namespace App\RideBuilder;
 
+use App\CityFetcher\CityFetcherInterface;
 use App\LocationCoordLookup\LocationCoordLookupInterface;
 use App\Model\Ride;
 use Carbon\Carbon;
+use Carbon\CarbonTimeZone;
 use Symfony\Component\DomCrawler\Crawler;
 
 class RideBuilder implements RideBuilderInterface
 {
     protected LocationCoordLookupInterface $locationCoordLookup;
+    protected CityFetcherInterface $cityFetcher;
 
-    public function __construct(LocationCoordLookupInterface $locationCoordLookup)
+    public function __construct(LocationCoordLookupInterface $locationCoordLookup, CityFetcherInterface $cityFetcher)
     {
         $this->locationCoordLookup = $locationCoordLookup;
+        $this->cityFetcher = $cityFetcher;
     }
 
     public function buildWithCrawler(Crawler $crawler): Ride
@@ -32,7 +36,10 @@ class RideBuilder implements RideBuilderInterface
             return $ride;
         }
 
+        $city = $this->cityFetcher->getCityForName($cityName);
+
         $ride
+            ->setCity($city)
             ->setTitle($title)
             ->setCityName($cityName)
             ->setDateTime($this->findDateTime($crawler))
@@ -64,18 +71,19 @@ class RideBuilder implements RideBuilderInterface
     protected function findDateTime(Crawler $crawler): ?\DateTime
     {
         $dateTimeList = $crawler->filter('p > b > span');
+        $timezone = new CarbonTimeZone('Europe/Berlin');
 
         foreach ($dateTimeList as $dateTimeElement) {
             $germanDateTimeSpec = $dateTimeElement->textContent;
             $germanDateTimeSpec = str_replace([',', 'Uhr', 'März', 'Septmber'], ['', '', '03.', '09.'], $germanDateTimeSpec);
 
             try {
-                return Carbon::parseFromLocale($germanDateTimeSpec);
+                return Carbon::parseFromLocale($germanDateTimeSpec, null, $timezone);
 
             } catch (\Exception $exception) {
                 try {
                     $germanDateTimeSpec = str_replace(['x', 'X'], '', $germanDateTimeSpec);
-                    return Carbon::parseFromLocale($germanDateTimeSpec);
+                    return Carbon::parseFromLocale($germanDateTimeSpec, null, $timezone);
                 } catch (\Exception $exception) {
 
                 }
@@ -87,7 +95,6 @@ class RideBuilder implements RideBuilderInterface
 
     protected function findLocation(Crawler $crawler): ?string
     {
-
         $locationList = $crawler->filter('div span');
 
         foreach ($locationList as $locationElement) {

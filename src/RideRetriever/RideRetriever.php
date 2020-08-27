@@ -1,12 +1,12 @@
 <?php declare(strict_types=1);
 
-namespace App\RidePusher;
+namespace App\RideRetriever;
 
 use App\Model\Ride;
 use GuzzleHttp\Client;
 use JMS\Serializer\SerializerInterface;
 
-class RidePusher
+class RideRetriever
 {
     protected Client $client;
     protected SerializerInterface $serializer;
