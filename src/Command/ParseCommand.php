@@ -2,6 +2,7 @@
 
 namespace App\Command;
 
+use App\LocationCoordLookup\LocationCoordLookupInterface;
 use App\Model\Ride;
 use Carbon\Carbon;
 use maxh\Nominatim\Nominatim;
@@ -16,6 +17,15 @@ use Symfony\Component\DomCrawler\Crawler;
 class ParseCommand extends Command
 {
     protected static $defaultName = 'kidicalmass:parse';
+
+    protected LocationCoordLookupInterface $locationCoordLookup;
+
+    public function __construct(LocationCoordLookupInterface $locationCoordLookup, string $name = null)
+    {
+        $this->locationCoordLookup = $locationCoordLookup;
+
+        parent::__construct($name);
+    }
 
     protected function configure()
     {
@@ -93,26 +103,7 @@ class ParseCommand extends Command
                 }
             }
 
-            if ($ride->getLocation() && $ride->getCityName()) {
-                $nominatim = new Nominatim('http://nominatim.openstreetmap.org/');
-
-                $search = $nominatim->newSearch()
-                    ->country('Germany')
-                    ->city($city)
-                    ->query($location)
-                    ->addressDetails()
-                    ->limit(1);
-
-                $resultList = $nominatim->find($search);
-
-                if (1 === count($resultList)) {
-                    $result = array_pop($resultList);
-
-                    $ride
-                        ->setLatitude($result['lat'])
-                        ->setLongitude($result['lon']);
-                }
-            }
+            $this->locationCoordLookup->lookupCoordsForRideLocation($ride);
 
             $rideList[] = $ride;
         });
