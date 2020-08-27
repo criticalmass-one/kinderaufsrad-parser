@@ -4,6 +4,7 @@ namespace App\RideBuilder;
 
 use App\CityFetcher\CityFetcherInterface;
 use App\LocationCoordLookup\LocationCoordLookupInterface;
+use App\Model\City;
 use App\Model\Ride;
 use Carbon\Carbon;
 use Carbon\CarbonTimeZone;
@@ -42,7 +43,7 @@ class RideBuilder implements RideBuilderInterface
             ->setCity($city)
             ->setTitle($title)
             ->setCityName($cityName)
-            ->setDateTime($this->findDateTime($crawler))
+            ->setDateTime($this->findDateTime($crawler, $city))
             ->setLocation($this->findLocation($crawler));
 
         $ride = $this->locationCoordLookup->lookupCoordsForRideLocation($ride);
@@ -68,10 +69,12 @@ class RideBuilder implements RideBuilderInterface
         return str_replace('Kidical Mass ', '', $title);
     }
 
-    protected function findDateTime(Crawler $crawler): ?\DateTime
+    protected function findDateTime(Crawler $crawler, City $city): ?\DateTime
     {
         $dateTimeList = $crawler->filter('p > b > span');
-        $timezone = new CarbonTimeZone('Europe/Berlin');
+        $timezoneSpec = $city ? $city->getTimezone() : 'Europe/Berlin';
+
+        $timezone = new CarbonTimeZone($timezoneSpec);
 
         foreach ($dateTimeList as $dateTimeElement) {
             $germanDateTimeSpec = $dateTimeElement->textContent;

@@ -24,6 +24,11 @@ class City
      */
     protected ?CitySlug $mainSlug = null;
 
+    /**
+     * @JMS\Expose
+     */
+    protected string $timezone = 'Europe/Berlin';
+
     public function getName(): ?string
     {
         return $this->name;
@@ -46,5 +51,17 @@ class City
         $this->mainSlug = $citySlug;
 
         return $this;
+    }
+
+    public function setTimezone(string $timezone): self
+    {
+        $this->timezone = $timezone;
+
+        return $this;
+    }
+
+    public function getTimezone(): ?string
+    {
+        return $this->timezone;
     }
 }
