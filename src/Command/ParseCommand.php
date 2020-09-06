@@ -55,8 +55,8 @@ class ParseCommand extends Command
             $rideList[] = $ride;
         });
 
-        $io->table(['City', 'Title', 'DateTime', 'Location', 'Latitude', 'Longitude'], array_map(function (Ride $ride): array {
-            return [$ride->getCityName(), $ride->getTitle(), $ride->hasDateTime() ? $ride->getDateTime()->format('Y-m-d H:i') : '', $ride->getLocation(), $ride->getLatitude(), $ride->getLongitude()];
+        $io->table(['City', 'Title', 'Slug', 'DateTime', 'Location', 'Latitude', 'Longitude'], array_map(function (Ride $ride): array {
+            return [$ride->getCityName(), $ride->getTitle(), $ride->getSlug(), $ride->hasDateTime() ? $ride->getDateTime()->format('Y-m-d H:i') : '', $ride->getLocation(), $ride->getLatitude(), $ride->getLongitude()];
         }, $rideList));
 
         return Command::SUCCESS;
