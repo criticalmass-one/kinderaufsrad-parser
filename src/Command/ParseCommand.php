@@ -56,6 +56,10 @@ class ParseCommand extends Command
 
         usort($rideList, function(Ride $a, Ride $b): int
         {
+            if (!$a->getCity() || !$b->getCity()) {
+                return 0;
+            }
+
             if ($a->getCity()->getName() === $b->getCity()->getName()) {
                 return 0;
             }
@@ -71,7 +75,7 @@ class ParseCommand extends Command
         }
 
         $io->table(['City', 'Title', 'Slug', 'DateTime', 'Location', 'Latitude', 'Longitude'], array_map(function (Ride $ride): array {
-            return [$ride->getCityName(), $ride->getTitle(), $ride->getSlug(), $ride->hasDateTime() ? $ride->getDateTime()->format('Y-m-d H:i') : '', $ride->getLocation(), $ride->getLatitude(), $ride->getLongitude()];
+            return [$ride->getCity()->getName(), $ride->getTitle(), $ride->getSlug(), $ride->hasDateTime() ? $ride->getDateTime()->format('Y-m-d H:i') : '', $ride->getLocation(), $ride->getLatitude(), $ride->getLongitude()];
         }, $rideList));
 
         return Command::SUCCESS;
