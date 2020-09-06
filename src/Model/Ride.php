@@ -3,6 +3,7 @@
 namespace App\Model;
 
 use App\Model\City;
+use Carbon\Carbon;
 use JMS\Serializer\Annotation as JMS;
 
 /**
@@ -41,7 +42,7 @@ class Ride
      * @JMS\Expose
      * @JMS\Type("DateTime<'U'>")
      */
-    protected ?\DateTime $dateTime = null;
+    protected ?Carbon $dateTime = null;
 
     /**
      * @JMS\Expose
@@ -62,18 +63,18 @@ class Ride
      * @JMS\Expose
      * @JMS\Type("DateTime<'U'>")
      */
-    protected ?\DateTime $createdAt = null;
+    protected ?Carbon $createdAt = null;
 
     /**
      * @JMS\Expose
      * @JMS\Type("DateTime<'U'>")
      */
-    protected ?\DateTime $updatedAt = null;
+    protected ?Carbon $updatedAt = null;
 
     public function __construct()
     {
-        $this->dateTime = new \DateTime();
-        $this->createdAt = new \DateTime();
+        $this->dateTime = new Carbon();
+        $this->createdAt = new Carbon();
     }
 
     public function getId(): ?int
@@ -107,14 +108,14 @@ class Ride
 
     }
 
-    public function setDateTime(\DateTime $dateTime = null): self
+    public function setDateTime(Carbon $dateTime = null): self
     {
         $this->dateTime = $dateTime;
 
         return $this;
     }
 
-    public function getDateTime(): ?\DateTime
+    public function getDateTime(): ?Carbon
     {
         return $this->dateTime;
     }

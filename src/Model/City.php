@@ -41,7 +41,7 @@ class City
         return $this;
     }
 
-    public function getMainSlug(): CitySlug
+    public function getMainSlug(): ?CitySlug
     {
         return $this->mainSlug;
     }
