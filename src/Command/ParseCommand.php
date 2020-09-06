@@ -28,9 +28,8 @@ class ParseCommand extends Command
     protected function configure()
     {
         $this
-            ->setDescription('Add a short description for your command')
-            ->addArgument('arg1', InputArgument::OPTIONAL, 'Argument description')
-            ->addOption('option1', null, InputOption::VALUE_NONE, 'Option description')
+            ->setDescription('Fetch kidical mass rides from kinderaufsrad.org')
+            ->addOption('complete-only', null, InputOption::VALUE_NONE, 'Only list rides with complete data')
         ;
     }
 
@@ -63,6 +62,13 @@ class ParseCommand extends Command
 
             return ($a->getCity()->getName() < $b->getCity()->getName()) ? -1 : 1;
         });
+
+        if ($input->getOption('complete-only')) {
+            $rideList = array_filter($rideList, function(Ride $ride): bool
+            {
+                return ($ride->getCity() && $ride->getDateTime() && $ride->getDateTime()->format('H:i') !== '00:00' && $ride->getLocation() && $ride->getLatitude() && $ride->getLongitude());
+            });
+        }
 
         $io->table(['City', 'Title', 'Slug', 'DateTime', 'Location', 'Latitude', 'Longitude'], array_map(function (Ride $ride): array {
             return [$ride->getCityName(), $ride->getTitle(), $ride->getSlug(), $ride->hasDateTime() ? $ride->getDateTime()->format('Y-m-d H:i') : '', $ride->getLocation(), $ride->getLatitude(), $ride->getLongitude()];
