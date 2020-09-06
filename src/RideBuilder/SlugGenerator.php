@@ -13,10 +13,12 @@ class SlugGenerator implements SlugGeneratorInterface
         }
 
         $citySlug = $ride->getCity()->getMainSlug()->getSlug();
-        $monthName = $ride->getDateTime()->formatLocalized('L');
+        $monthName = $ride->getDateTime()->locale('de')->monthName;
         $year = $ride->getDateTime()->format('Y');
 
         $slug = sprintf('kidical-mass-%s-%s-%d', $citySlug, $monthName, $year);
+
+        $slug = strtolower($slug);
 
         $ride->setSlug($slug);
 
