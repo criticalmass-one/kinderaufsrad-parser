@@ -14,11 +14,13 @@ class RideBuilder implements RideBuilderInterface
 {
     protected LocationCoordLookupInterface $locationCoordLookup;
     protected CityFetcherInterface $cityFetcher;
+    protected SlugGeneratorInterface $slugGenerator;
 
-    public function __construct(LocationCoordLookupInterface $locationCoordLookup, CityFetcherInterface $cityFetcher)
+    public function __construct(LocationCoordLookupInterface $locationCoordLookup, CityFetcherInterface $cityFetcher, SlugGeneratorInterface $slugGenerator)
     {
         $this->locationCoordLookup = $locationCoordLookup;
         $this->cityFetcher = $cityFetcher;
+        $this->slugGenerator = $slugGenerator;
     }
 
     public function buildWithCrawler(Crawler $crawler): Ride
@@ -47,6 +49,7 @@ class RideBuilder implements RideBuilderInterface
             ->setLocation($this->findLocation($crawler));
 
         $ride = $this->locationCoordLookup->lookupCoordsForRideLocation($ride);
+        $ride = $this->slugGenerator->generateForRide($ride);
 
         return $ride;
     }
