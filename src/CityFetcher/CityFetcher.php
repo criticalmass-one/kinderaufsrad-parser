@@ -34,8 +34,8 @@ class CityFetcher implements CityFetcherInterface
 
         $response = $this->client->get(sprintf('/api/city?%s', http_build_query($query)));
 
-        $city = $this->serializer->deserialize($response->getBody()->getContents(), City::class, 'json');
+        $cityList = $this->serializer->deserialize($response->getBody()->getContents(), 'array<App\Model\City>', 'json');
 
-        return $city;
+        return array_pop($cityList);
     }
 }

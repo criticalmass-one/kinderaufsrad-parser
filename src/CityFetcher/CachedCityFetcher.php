@@ -23,16 +23,18 @@ class CachedCityFetcher extends CityFetcher
     {
         $key = md5($name);
 
-        return $this->cache->get($key, function () use ($name): City {
+        $cityJson = $this->cache->get($key, function () use ($name): string {
             $query = [
                 'name' => $name,
             ];
 
             $response = $this->client->get(sprintf('/api/city?%s', http_build_query($query)));
 
-            $city = $this->serializer->deserialize($response->getBody()->getContents(), City::class, 'json');
-
-            return $city;
+            return $response->getBody()->getContents();
         });
+
+        $cityList = $this->serializer->deserialize($cityJson, 'array<App\Model\City>', 'json');
+
+        return array_pop($cityList);
     }
 }

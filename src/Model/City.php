@@ -10,22 +10,22 @@ use JMS\Serializer\Annotation as JMS;
 class City
 {
     /**
-     * @JMS\Expose
+     * @JMS\Expose()
      */
     protected ?int $id = null;
 
     /**
-     * @JMS\Expose
+     * @JMS\Expose()
      */
     protected ?string $name = null;
 
     /**
-     * @JMS\Expose
+     * @JMS\Expose()
      */
     protected ?CitySlug $mainSlug = null;
 
     /**
-     * @JMS\Expose
+     * @JMS\Expose()
      */
     protected string $timezone = 'Europe/Berlin';
 
