@@ -56,15 +56,23 @@ class ParseCommand extends Command
 
         usort($rideList, function(Ride $a, Ride $b): int
         {
-            if (!$a->getCity() || !$b->getCity()) {
+            if (!$a->getCity()) {
+                $cityAName = $a->getCityName();
+            } else {
+                $cityAName = $a->getCity()->getName();
+            }
+
+            if (!$b->getCity()) {
+                $cityBName = $b->getCityName();
+            } else {
+                $cityBName = $b->getCity()->getName();
+            }
+
+            if ($cityAName === $cityBName) {
                 return 0;
             }
 
-            if ($a->getCity()->getName() === $b->getCity()->getName()) {
-                return 0;
-            }
-
-            return ($a->getCity()->getName() < $b->getCity()->getName()) ? -1 : 1;
+            return ($cityAName < $cityBName) ? -1 : 1;
         });
 
         if ($input->getOption('complete-only')) {

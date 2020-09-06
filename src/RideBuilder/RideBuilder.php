@@ -41,6 +41,10 @@ class RideBuilder implements RideBuilderInterface
 
         $city = $this->cityFetcher->getCityForName($cityName);
 
+        if (!$city) {
+            return $ride;
+        }
+
         $ride
             ->setCity($city)
             ->setTitle($title)
