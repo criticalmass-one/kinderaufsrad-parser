@@ -37,3 +37,7 @@ services:
 
     App\CityFetcher\CityFetcherInterface:
         alias: App\CityFetcher\CachedCityFetcher
+
+    Rosamarsky\JMS\CarbonHandler:
+        tags:
+            - jms_serializer.subscribing_handler

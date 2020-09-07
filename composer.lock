@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a618ecf7b9636a63bfaccda260f0827a",
+    "content-hash": "49f0fae2ed90916cbd02488561ebd78d",
     "packages": [
         {
             "name": "doctrine/annotations",
@@ -1070,6 +1070,54 @@
             ],
             "description": "A polyfill for getallheaders.",
             "time": "2019-03-08T08:55:37+00:00"
+        },
+        {
+            "name": "rosamarsky/jms-carbon-handler",
+            "version": "2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/rosamarsky/jms-carbon-handler.git",
+                "reference": "07546bb39f166ff7a59fce21cf8d646999646079"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/rosamarsky/jms-carbon-handler/zipball/07546bb39f166ff7a59fce21cf8d646999646079",
+                "reference": "07546bb39f166ff7a59fce21cf8d646999646079",
+                "shasum": ""
+            },
+            "require": {
+                "jms/serializer": "*",
+                "nesbot/carbon": "*"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^4.8|^5.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Rosamarsky\\JMS\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Roman Samarsky",
+                    "email": "rosamarsky@gmail.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Simple to use Carbon handler for the JMS Serializer",
+            "keywords": [
+                "carbon",
+                "datetime",
+                "handler",
+                "jms",
+                "serializer"
+            ],
+            "time": "2018-10-12T22:48:03+00:00"
         },
         {
             "name": "symfony/cache",
@@ -3368,7 +3416,7 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": ">=7.2.5",
+        "php": ">=7.4",
         "ext-ctype": "*",
         "ext-iconv": "*"
     },

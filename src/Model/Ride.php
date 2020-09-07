@@ -40,7 +40,7 @@ class Ride
 
     /**
      * @JMS\Expose
-     * @JMS\Type("DateTime<'U'>")
+     * @JMS\Type("Carbon<'U'>")
      */
     protected ?Carbon $dateTime = null;
 
@@ -61,13 +61,13 @@ class Ride
 
     /**
      * @JMS\Expose
-     * @JMS\Type("DateTime<'U'>")
+     * @JMS\Type("Carbon<'U'>")
      */
     protected ?Carbon $createdAt = null;
 
     /**
      * @JMS\Expose
-     * @JMS\Type("DateTime<'U'>")
+     * @JMS\Type("Carbon<'U'>")
      */
     protected ?Carbon $updatedAt = null;
 

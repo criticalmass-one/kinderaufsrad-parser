@@ -9,6 +9,7 @@
         "jms/serializer-bundle": "^3.7",
         "maxh/php-nominatim": "^2.2",
         "nesbot/carbon": "^2.39",
+        "rosamarsky/jms-carbon-handler": "^2.0",
         "symfony/console": "5.1.*",
         "symfony/css-selector": "5.1.*",
         "symfony/dom-crawler": "5.1.*",
