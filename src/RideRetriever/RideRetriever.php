@@ -4,9 +4,10 @@ namespace App\RideRetriever;
 
 use App\Model\Ride;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ClientException;
 use JMS\Serializer\SerializerInterface;
 
-class RideRetriever
+class RideRetriever implements RideRetrieverInterface
 {
     protected Client $client;
     protected SerializerInterface $serializer;
@@ -17,13 +18,41 @@ class RideRetriever
 
         $this->client = new Client([
             'base_uri' => $criticalmassHostname,
+            'verify' => false,
         ]);
     }
 
-    public function postRide(Ride $ride): self
+    public function doesRideExist(Ride $ride): bool
     {
-        $this->client->post(sprintf('/api/%s/%s', 'hamburg', 'kidical-mass'));
+        if (!$ride->getCity()) {
+            return false;
+        }
 
-        return $this;
+        $citySlug = $ride->getCity()->getMainSlug()->getSlug();
+        $rideSlug = $ride->getSlug();
+
+        try {
+            $this->client->get(sprintf('/api/%s/%s', $citySlug, $rideSlug));
+        } catch (ClientException $clientException) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function fetchOriginalRide(Ride $ride): ?Ride
+    {
+        $citySlug = $ride->getCity()->getMainSlug()->getSlug();
+        $rideSlug = $ride->getSlug();
+
+        try {
+            $response = $this->client->get(sprintf('/api/%s/%s', $citySlug, $rideSlug));
+        } catch (ClientException $clientException) {
+            return null;
+        }
+
+        $ride = $this->serializer->deserialize($response->getBody()->getContents(), Ride::class, 'json');
+
+        return $ride;
     }
 }

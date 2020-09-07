@@ -4,8 +4,9 @@ namespace App\Command;
 
 use App\Model\Ride;
 use App\RideBuilder\RideBuilderInterface;
+use App\RidePusher\RidePusherInterface;
+use App\RideRetriever\RideRetrieverInterface;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -18,9 +19,15 @@ class ParseCommand extends Command
 
     protected RideBuilderInterface $rideBuilder;
 
-    public function __construct(RideBuilderInterface $rideBuilder, string $name = null)
+    protected RideRetrieverInterface $rideRetriever;
+
+    protected RidePusherInterface $ridePusher;
+
+    public function __construct(RideBuilderInterface $rideBuilder, RideRetrieverInterface $rideRetriever, RidePusherInterface $ridePusher, string $name = null)
     {
         $this->rideBuilder = $rideBuilder;
+        $this->rideRetriever = $rideRetriever;
+        $this->ridePusher = $ridePusher;
 
         parent::__construct($name);
     }
@@ -30,6 +37,7 @@ class ParseCommand extends Command
         $this
             ->setDescription('Fetch kidical mass rides from kinderaufsrad.org')
             ->addOption('complete-only', null, InputOption::VALUE_NONE, 'Only list rides with complete data')
+            ->addOption('unexisting-only', null, InputOption::VALUE_NONE, 'Do not list already existing rides')
         ;
     }
 
@@ -45,7 +53,6 @@ class ParseCommand extends Command
         $rideList = [];
 
         $crawler->each(function (Crawler $elementCrawler) use (&$rideList) {
-
             $elementHtml = $elementCrawler->attr('data-html');
             $crawler = new Crawler($elementHtml);
 
@@ -53,6 +60,20 @@ class ParseCommand extends Command
 
             $rideList[] = $ride;
         });
+
+        if ($input->getOption('complete-only')) {
+            $rideList = array_filter($rideList, function(Ride $ride): bool
+            {
+                return ($ride->getCity() && $ride->getDateTime() && $ride->getDateTime()->format('H:i') !== '00:00' && $ride->getLocation() && $ride->getLatitude() && $ride->getLongitude());
+            });
+        }
+
+        if ($input->getOption('unexisting-only')) {
+            $rideList = array_filter($rideList, function(Ride $ride): bool
+            {
+                return !$this->rideRetriever->doesRideExist($ride);
+            });
+        }
 
         usort($rideList, function(Ride $a, Ride $b): int
         {
@@ -75,16 +96,21 @@ class ParseCommand extends Command
             return ($cityAName < $cityBName) ? -1 : 1;
         });
 
-        if ($input->getOption('complete-only')) {
-            $rideList = array_filter($rideList, function(Ride $ride): bool
-            {
-                return ($ride->getCity() && $ride->getDateTime() && $ride->getDateTime()->format('H:i') !== '00:00' && $ride->getLocation() && $ride->getLatitude() && $ride->getLongitude());
-            });
-        }
-
         $io->table(['City', 'Title', 'Slug', 'DateTime', 'Location', 'Latitude', 'Longitude'], array_map(function (Ride $ride): array {
             return [$ride->getCity()->getName(), $ride->getTitle(), $ride->getSlug(), $ride->hasDateTime() ? $ride->getDateTime()->format('Y-m-d H:i') : '', $ride->getLocation(), $ride->getLatitude(), $ride->getLongitude()];
         }, $rideList));
+
+        if ($io->ask(sprintf('Should I post those %d rides to critical mass api? [y/n]', count($rideList)), 'n')) {
+            $progressBar = $io->createProgressBar(count($rideList));
+
+            foreach ($rideList as $ride) {
+                $this->ridePusher->putRide($ride);
+
+                $progressBar->advance();
+            }
+
+            $progressBar->finish();
+        }
 
         return Command::SUCCESS;
     }
