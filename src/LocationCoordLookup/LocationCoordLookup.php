@@ -37,9 +37,9 @@ class LocationCoordLookup implements LocationCoordLookupInterface
     protected function buildSearch(Ride $ride): QueryInterface
     {
         $search = $this->nominatim->newSearch()
-            ->country('Germany')
+            ->country('Deutschland')
             ->city($ride->getCityName())
-            ->query($ride->getLocation())
+            ->street($ride->getLocation())
             ->addressDetails()
             ->limit(1);
 
