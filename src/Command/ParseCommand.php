@@ -38,6 +38,7 @@ class ParseCommand extends Command
             ->setDescription('Fetch kidical mass rides from kinderaufsrad.org')
             ->addOption('complete-only', null, InputOption::VALUE_NONE, 'Only list rides with complete data')
             ->addOption('unexisting-only', null, InputOption::VALUE_NONE, 'Do not list already existing rides')
+            ->addOption('update', null, InputOption::VALUE_NONE, 'Update rides')
         ;
     }
 
@@ -104,7 +105,11 @@ class ParseCommand extends Command
             $progressBar = $io->createProgressBar(count($rideList));
 
             foreach ($rideList as $ride) {
-                $this->ridePusher->putRide($ride);
+                if ($input->getOption('update')) {
+                    $this->ridePusher->postRide($ride);
+                } else {
+                    $this->ridePusher->putRide($ride);
+                }
 
                 $progressBar->advance();
             }
