@@ -85,19 +85,8 @@ class RideBuilder implements RideBuilderInterface
 
         foreach ($dateTimeList as $dateTimeElement) {
             $germanDateTimeSpec = $dateTimeElement->textContent;
-            $germanDateTimeSpec = str_replace([',', 'Uhr', 'März', 'Septmber'], ['', '', '03.', '09.'], $germanDateTimeSpec);
 
-            try {
-                return Carbon::parseFromLocale($germanDateTimeSpec, null, $timezone);
-
-            } catch (\Exception $exception) {
-                try {
-                    $germanDateTimeSpec = str_replace(['x', 'X'], '', $germanDateTimeSpec);
-                    return Carbon::parseFromLocale($germanDateTimeSpec, null, $timezone);
-                } catch (\Exception $exception) {
-
-                }
-            }
+            return DateTimeDetector::detect($germanDateTimeSpec, $city->getTimezone());
         }
 
         return null;
