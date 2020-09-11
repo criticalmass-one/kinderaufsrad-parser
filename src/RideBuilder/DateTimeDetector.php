@@ -3,6 +3,7 @@
 namespace App\RideBuilder;
 
 use Carbon\Carbon;
+use function foo\func;
 
 class DateTimeDetector
 {
@@ -15,21 +16,34 @@ class DateTimeDetector
     {
         $dateTimeSpec = str_replace([',', 'Uhr', 'März', 'Septmber'], ['', '', '03.', '09.'], $dateTimeSpec);
 
-        try {
-            return Carbon::parseFromLocale($dateTimeSpec, null, $timezoneSpec);
-
-        } catch (\Exception $exception) {
-            try {
-                $dateTimeSpec = str_replace(['x', 'X'], '', $dateTimeSpec);
+        $callableList = [
+            function(string $dateTimeSpec, string $timezoneSpec) {
                 return Carbon::parseFromLocale($dateTimeSpec, null, $timezoneSpec);
-            } catch (\Exception $exception) {
-                try {
-                    $dateTimeSpec = str_replace(' Uhr', ':00', $dateTimeSpec);
-                    return Carbon::parseFromLocale($dateTimeSpec, null, $timezoneSpec);
-                } catch (\Exception $exception) {
+            },
+            function(string $dateTimeSpec, string $timezoneSpec) {
+                $dateTimeSpec = str_replace(['x', 'X'], '', $dateTimeSpec);
 
+                return Carbon::parseFromLocale($dateTimeSpec, null, $timezoneSpec);
+            },
+            function(string $dateTimeSpec, string $timezoneSpec) {
+                $dateTimeSpec = str_replace(' Uhr', ':00', $dateTimeSpec);
+
+                return Carbon::parseFromLocale($dateTimeSpec, null, $timezoneSpec);
+            }
+        ];
+
+        foreach ($callableList as $callable) {
+            try {
+                $dateTime = $callable($dateTimeSpec, $timezoneSpec);
+
+                if ($dateTime) {
+                    return $dateTime;
                 }
+            } catch (\Exception $exception) {
+
             }
         }
+
+        return null;
     }
 }
