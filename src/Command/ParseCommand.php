@@ -98,7 +98,7 @@ class ParseCommand extends Command
         });
 
         $io->table(['City', 'Title', 'Slug', 'DateTime', 'Location', 'Latitude', 'Longitude'], array_map(function (Ride $ride): array {
-            return [$ride->getCity()->getName(), $ride->getTitle(), $ride->getSlug(), $ride->hasDateTime() ? $ride->getDateTime()->format('Y-m-d H:i') : '', $ride->getLocation(), $ride->getLatitude(), $ride->getLongitude()];
+            return [$ride->getCity() ? $ride->getCity()->getName() : $ride->getCityName() . '?', $ride->getTitle(), $ride->getSlug(), $ride->hasDateTime() ? $ride->getDateTime()->format('Y-m-d H:i') : '', $ride->getLocation(), $ride->getLatitude(), $ride->getLongitude()];
         }, $rideList));
 
         if ($io->ask(sprintf('Should I post those %d rides to critical mass api? [y/n]', count($rideList)), 'n')) {
