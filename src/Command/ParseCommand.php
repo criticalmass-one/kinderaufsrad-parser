@@ -38,6 +38,10 @@ class ParseCommand extends Command
             ->setDescription('Fetch kidical mass rides from kinderaufsrad.org')
             ->addOption('complete-only', null, InputOption::VALUE_NONE, 'Only list rides with complete data')
             ->addOption('unexisting-only', null, InputOption::VALUE_NONE, 'Do not list already existing rides')
+            ->addOption('require-existing-city', null, InputOption::VALUE_NONE, 'Require ride to belong to an existing city')
+            ->addOption('require-not-null-city', null, InputOption::VALUE_NONE, 'Require ride to have a not null city')
+            ->addOption('require-location', null, InputOption::VALUE_NONE, 'Require ride to have a location')
+            ->addOption('require-datetime', null, InputOption::VALUE_NONE, 'Require ride to have a datetime')
             ->addOption('update', null, InputOption::VALUE_NONE, 'Update rides')
         ;
     }
@@ -62,40 +66,35 @@ class ParseCommand extends Command
             $rideList[] = $ride;
         });
 
-        if ($input->getOption('complete-only')) {
+        if ($input->getOption('require-datetime') || $input->getOption('complete-only')) {
             $rideList = array_filter($rideList, function(Ride $ride): bool
             {
-                return ($ride->getCity() && $ride->getDateTime() && $ride->getDateTime()->format('H:i') !== '00:00' && $ride->getLocation() && $ride->getLatitude() && $ride->getLongitude());
+                return ($ride->getDateTime() && $ride->getDateTime()->format('H:i') !== '00:00');
             });
         }
 
-        if ($input->getOption('unexisting-only')) {
+        if ($input->getOption('require-location') || $input->getOption('complete-only')) {
             $rideList = array_filter($rideList, function(Ride $ride): bool
             {
-                return !$this->rideRetriever->doesRideExist($ride);
+                return ($ride->getLocation() && $ride->getLatitude() && $ride->getLongitude());
             });
         }
 
-        usort($rideList, function(Ride $a, Ride $b): int
-        {
-            if (!$a->getCity()) {
-                $cityAName = $a->getCityName();
-            } else {
-                $cityAName = $a->getCity()->getName();
-            }
+        if ($input->getOption('require-existing-city') || $input->getOption('complete-only')) {
+            $rideList = array_filter($rideList, function(Ride $ride): bool
+            {
+                return $ride->getCity() !== null;
+            });
+        }
 
-            if (!$b->getCity()) {
-                $cityBName = $b->getCityName();
-            } else {
-                $cityBName = $b->getCity()->getName();
-            }
+        if ($input->getOption('require-not-null-city') || $input->getOption('complete-only')) {
+            $rideList = array_filter($rideList, function(Ride $ride): bool
+            {
+                return !$ride->getCity() && $ride->getCityName();
+            });
+        }
 
-            if ($cityAName === $cityBName) {
-                return 0;
-            }
-
-            return ($cityAName < $cityBName) ? -1 : 1;
-        });
+        $rideList = $this->sortRideList($rideList);
 
         $io->table(['City', 'Title', 'Slug', 'DateTime', 'Location', 'Latitude', 'Longitude'], array_map(function (Ride $ride): array {
             return [$ride->getCity() ? $ride->getCity()->getName() : $ride->getCityName() . '?', $ride->getTitle(), $ride->getSlug(), $ride->hasDateTime() ? $ride->getDateTime()->format('Y-m-d H:i') : '', $ride->getLocation(), $ride->getLatitude(), $ride->getLongitude()];
@@ -118,5 +117,31 @@ class ParseCommand extends Command
         }
 
         return Command::SUCCESS;
+    }
+
+    protected function sortRideList(array $rideList): array
+    {
+        usort($rideList, function(Ride $a, Ride $b): int
+        {
+            if (!$a->getCity()) {
+                $cityAName = $a->getCityName();
+            } else {
+                $cityAName = $a->getCity()->getName();
+            }
+
+            if (!$b->getCity()) {
+                $cityBName = $b->getCityName();
+            } else {
+                $cityBName = $b->getCity()->getName();
+            }
+
+            if ($cityAName === $cityBName) {
+                return 0;
+            }
+
+            return ($cityAName < $cityBName) ? -1 : 1;
+        });
+
+        return $rideList;
     }
 }
