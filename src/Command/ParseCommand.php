@@ -66,6 +66,13 @@ class ParseCommand extends Command
             $rideList[] = $ride;
         });
 
+        if ($input->getOption('unexisting-only')) {
+            $rideList = array_filter($rideList, function(Ride $ride): bool
+            {
+                return !$this->rideRetriever->doesRideExist($ride);
+            });
+        }
+
         if ($input->getOption('require-datetime') || $input->getOption('complete-only')) {
             $rideList = array_filter($rideList, function(Ride $ride): bool
             {
