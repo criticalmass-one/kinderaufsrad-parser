@@ -14,14 +14,14 @@ class DateTimeDetector
 
     public static function detect(string $dateTimeSpec, string $timezoneSpec): ?Carbon
     {
-        $dateTimeSpec = str_replace([',', 'Uhr', 'März', 'Septmber'], ['', '', '03.', '09.'], $dateTimeSpec);
-
         $callableList = [
             function(string $dateTimeSpec, string $timezoneSpec) {
+                $dateTimeSpec = str_replace([',', 'Uhr', 'März', 'Septmber'], ['', '', '03.', '09.'], $dateTimeSpec);
+
                 return Carbon::parseFromLocale($dateTimeSpec, null, $timezoneSpec);
             },
             function(string $dateTimeSpec, string $timezoneSpec) {
-                $dateTimeSpec = str_replace(['x', 'X'], '', $dateTimeSpec);
+                $dateTimeSpec = str_replace([',', 'Uhr', 'März', 'Septmber', 'x', 'X'], ['', '', '03.', '09.', '', ''], $dateTimeSpec);
 
                 return Carbon::parseFromLocale($dateTimeSpec, null, $timezoneSpec);
             },
