@@ -66,6 +66,11 @@ class ParseCommand extends Command
             $rideList[] = $ride;
         });
 
+        $rideList = array_filter($rideList, function(Ride $ride): bool
+        {
+            return $ride->getCityName() && $ride->getCity();
+        });
+
         if ($input->getOption('unexisting-only')) {
             $rideList = array_filter($rideList, function(Ride $ride): bool
             {
