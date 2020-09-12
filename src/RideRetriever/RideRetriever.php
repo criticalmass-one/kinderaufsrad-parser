@@ -24,20 +24,22 @@ class RideRetriever implements RideRetrieverInterface
 
     public function doesRideExist(Ride $ride): bool
     {
-        if (!$ride->getCity()) {
+        if (!$ride->getCity() || !$ride->getSlug()) {
             return false;
         }
 
         $citySlug = $ride->getCity()->getMainSlug()->getSlug();
         $rideSlug = $ride->getSlug();
 
-        try {
-            $this->client->get(sprintf('/api/%s/%s', $citySlug, $rideSlug));
-        } catch (ClientException $clientException) {
-            return false;
+        $existingRide = $this->fetchBySlugs($citySlug, $rideSlug);
+
+        if (!$existingRide && $ride->getDateTime()) {
+            $rideSlug = $ride->getDateTime()->format('Y-m-d');
+
+            $existingRide = $this->fetchBySlugs($citySlug, $rideSlug);
         }
 
-        return true;
+        return $existingRide !== null;
     }
 
     public function fetchOriginalRide(Ride $ride): ?Ride
@@ -45,8 +47,13 @@ class RideRetriever implements RideRetrieverInterface
         $citySlug = $ride->getCity()->getMainSlug()->getSlug();
         $rideSlug = $ride->getSlug();
 
+        return $this->fetchBySlugs($citySlug, $rideSlug);
+    }
+
+    public function fetchBySlugs(string $citySlug, string $rideIdentifier): ?Ride
+    {
         try {
-            $response = $this->client->get(sprintf('/api/%s/%s', $citySlug, $rideSlug));
+            $response = $this->client->get(sprintf('/api/%s/%s', $citySlug, $rideIdentifier));
         } catch (ClientException $clientException) {
             return null;
         }
