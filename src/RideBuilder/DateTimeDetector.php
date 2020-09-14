@@ -18,17 +18,17 @@ class DateTimeDetector
             function(string $dateTimeSpec, string $timezoneSpec) {
                 $dateTimeSpec = str_replace([',', 'Uhr', 'März', 'Septmber'], ['', '', '03.', '09.'], $dateTimeSpec);
 
-                return Carbon::parseFromLocale($dateTimeSpec, null, $timezoneSpec);
+                return Carbon::parseFromLocale(trim($dateTimeSpec), null, $timezoneSpec);
             },
             function(string $dateTimeSpec, string $timezoneSpec) {
                 $dateTimeSpec = str_replace([',', 'Uhr', 'März', 'Septmber', 'x', 'X'], ['', '', '03.', '09.', '', ''], $dateTimeSpec);
 
-                return Carbon::parseFromLocale($dateTimeSpec, null, $timezoneSpec);
+                return Carbon::parseFromLocale(trim($dateTimeSpec), null, $timezoneSpec);
             },
             function(string $dateTimeSpec, string $timezoneSpec) {
                 $dateTimeSpec = str_replace(' Uhr', ':00', $dateTimeSpec);
 
-                return Carbon::parseFromLocale($dateTimeSpec, null, $timezoneSpec);
+                return Carbon::parseFromLocale(trim($dateTimeSpec), null, $timezoneSpec);
             }
         ];
 
