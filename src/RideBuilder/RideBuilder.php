@@ -79,9 +79,6 @@ class RideBuilder implements RideBuilderInterface
     protected function findDateTime(Crawler $crawler, City $city): ?\DateTime
     {
         $dateTimeList = $crawler->filter('p > b > span');
-        $timezoneSpec = $city ? $city->getTimezone() : 'Europe/Berlin';
-
-        $timezone = new CarbonTimeZone($timezoneSpec);
 
         foreach ($dateTimeList as $dateTimeElement) {
             $germanDateTimeSpec = $dateTimeElement->textContent;
