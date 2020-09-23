@@ -71,6 +71,11 @@ class Ride
      */
     protected ?Carbon $updatedAt = null;
 
+    /**
+     * @JMS\Expose
+     */
+    protected ?string $rideType = null;
+
     public function __construct()
     {
         $this->dateTime = new Carbon();
@@ -222,6 +227,18 @@ class Ride
     public function setUpdatedAt(\DateTime $updatedAt): self
     {
         $this->updatedAt = $updatedAt;
+
+        return $this;
+    }
+
+    public function getRideType(): ?string
+    {
+        return $this->rideType;
+    }
+
+    public function setRideType(string $rideType): self
+    {
+        $this->rideType = $rideType;
 
         return $this;
     }

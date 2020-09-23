@@ -50,7 +50,8 @@ class RideBuilder implements RideBuilderInterface
             ->setTitle($title)
             ->setCityName($cityName)
             ->setDateTime($this->findDateTime($crawler, $city))
-            ->setLocation($this->findLocation($crawler));
+            ->setLocation($this->findLocation($crawler))
+            ->setRideType('KIDICAL_MASS');
 
         $ride = $this->locationCoordLookup->lookupCoordsForRideLocation($ride);
         $ride = $this->slugGenerator->generateForRide($ride);
