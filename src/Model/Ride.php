@@ -16,8 +16,6 @@ class Ride
      */
     protected ?int $id = null;
 
-    protected ?string $cityName = null;
-
     /**
      * @JMS\Expose
      */
@@ -87,19 +85,6 @@ class Ride
         return $this->id;
     }
 
-    public function setCityName(string $cityName = null): self
-    {
-        $this->cityName = $cityName;
-
-        return $this;
-    }
-
-    public function getCityName(): ?string
-    {
-        return $this->cityName;
-
-    }
-
     public function setCity(City $city = null): self
     {
         $this->city = $city;
@@ -110,7 +95,6 @@ class Ride
     public function getCity(): ?City
     {
         return $this->city;
-
     }
 
     public function setDateTime(Carbon $dateTime = null): self

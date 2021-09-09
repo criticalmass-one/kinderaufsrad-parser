@@ -3,9 +3,8 @@
 namespace App\RideBuilder;
 
 use App\Model\Ride;
-use Symfony\Component\DomCrawler\Crawler;
 
 interface RideBuilderInterface
 {
-    public function buildWithCrawler(Crawler $crawler): Ride;
+    public function buildFromFeature(\stdClass $feature): Ride;
 }

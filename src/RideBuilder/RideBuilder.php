@@ -23,84 +23,43 @@ class RideBuilder implements RideBuilderInterface
         $this->slugGenerator = $slugGenerator;
     }
 
-    public function buildWithCrawler(Crawler $crawler): Ride
+    public function buildFromFeature(\stdClass $feature): Ride
     {
         $ride = new Ride();
 
-        $title = $this->findTitle($crawler);
-
-        if (!$title) {
-            return $ride;
-        }
-
-        $cityName = $this->findCityName($title);
-
-        if (!$cityName) {
-            return $ride;
-        }
-
-        $city = $this->cityFetcher->getCityForName($cityName);
+        $city = $this->cityFetcher->getCityForName($feature->properties->name ?? $feature->properties->Name);
 
         if (!$city) {
             return $ride;
         }
 
-        $ride
-            ->setCity($city)
-            ->setTitle($title)
-            ->setCityName($cityName)
-            ->setDateTime($this->findDateTime($crawler, $city))
-            ->setLocation($this->findLocation($crawler))
-            ->setRideType('KIDICAL_MASS');
+        $ride->setCity($city);
 
-        $ride = $this->locationCoordLookup->lookupCoordsForRideLocation($ride);
+        $day = $feature->properties->Tag;
+        $time = $feature->properties->Uhrzeit;
+        $location = $feature->properties->Startort;
+
+        $latitude = $feature->geometry->coordinates[1];
+        $longitude = $feature->geometry->coordinates[0];
+
+        $title = $this->generateTitle($ride);
+
+        $ride
+            ->setTitle($title)
+            //->setDateTime($this->findDateTime($crawler, $city))
+            ->setLocation($location)
+            ->setRideType('KIDICAL_MASS')
+            ->setLatitude($latitude)
+            ->setLongitude($longitude)
+        ;
+
         $ride = $this->slugGenerator->generateForRide($ride);
 
         return $ride;
     }
 
-    protected function findTitle(Crawler $crawler): ?string
+    protected function generateTitle(Ride $ride): string
     {
-        $h2List = $crawler->filter('h2');
-
-        foreach ($h2List as $h2Element) {
-            if ($h2Element->textContent) {
-                return $h2Element->textContent;
-            }
-        }
-
-        return null;
-    }
-
-    protected function findCityName(string $title): string
-    {
-        return str_replace('Kidical Mass ', '', $title);
-    }
-
-    protected function findDateTime(Crawler $crawler, City $city): ?\DateTime
-    {
-        $dateTimeList = $crawler->filter('p > b > span');
-
-        foreach ($dateTimeList as $dateTimeElement) {
-            $germanDateTimeSpec = $dateTimeElement->textContent;
-
-            return DateTimeDetector::detect($germanDateTimeSpec, $city->getTimezone());
-        }
-
-        return null;
-    }
-
-    protected function findLocation(Crawler $crawler): ?string
-    {
-        $locationList = $crawler->filter('div span');
-
-        foreach ($locationList as $locationElement) {
-            $locationString = $locationElement->textContent;
-            if (strpos($locationString, 'Start: ') === 0 && strpos($locationString, 'folgt') === false) {
-                return str_replace('Start: ', '', $locationString);
-            }
-        }
-
-        return null;
+        return sprintf('Kidical Mass %s %s', $ride->getCity()->getName(), $ride->getDateTime()->format('d.m.Y'));
     }
 }
