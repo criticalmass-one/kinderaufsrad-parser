@@ -50,7 +50,7 @@ class ParseCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
 
-        $content = file_get_contents('https://umap.openstreetmap.fr/de/datalayer/1884684/');
+        $content = file_get_contents('https://umap.openstreetmap.fr/de/datalayer/1885338/');
 
         $json = json_decode($content);
 
@@ -64,11 +64,17 @@ class ParseCommand extends Command
             $cityFeatureList[md5($name)] = $feature;
         }
 
+        $rideList = [];
+
         foreach ($cityFeatureList as $cityFeature) {
             $ride = $this->rideBuilder->buildFromFeature($cityFeature);
+
+            if ($ride) {
+                $rideList[] = $ride;
+            }
         }
-        dd($cityFeatureList);
-        die;
+        dd($rideList);
+
         $crawler = new Crawler($content);
         $crawler = $crawler->filter('#aktionsorte .drag_element > div');
 

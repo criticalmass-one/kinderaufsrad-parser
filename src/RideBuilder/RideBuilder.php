@@ -23,20 +23,26 @@ class RideBuilder implements RideBuilderInterface
         $this->slugGenerator = $slugGenerator;
     }
 
-    public function buildFromFeature(\stdClass $feature): Ride
+    public function buildFromFeature(\stdClass $feature): ?Ride
     {
         $ride = new Ride();
 
         $city = $this->cityFetcher->getCityForName($feature->properties->name ?? $feature->properties->Name);
 
         if (!$city) {
-            return $ride;
+            return null;
         }
 
         $ride->setCity($city);
 
-        $day = $feature->properties->Tag;
-        $time = $feature->properties->Uhrzeit;
+        $dateTime = $this->generateDateTime($city, $feature->properties->Tag, $feature->properties->Uhrzeit);
+
+        if (!$dateTime) {
+            return null;
+        }
+
+        $ride->setDateTime($dateTime);
+
         $location = $feature->properties->Startort;
 
         $latitude = $feature->geometry->coordinates[1];
@@ -46,7 +52,6 @@ class RideBuilder implements RideBuilderInterface
 
         $ride
             ->setTitle($title)
-            //->setDateTime($this->findDateTime($crawler, $city))
             ->setLocation($location)
             ->setRideType('KIDICAL_MASS')
             ->setLatitude($latitude)
@@ -61,5 +66,20 @@ class RideBuilder implements RideBuilderInterface
     protected function generateTitle(Ride $ride): string
     {
         return sprintf('Kidical Mass %s %s', $ride->getCity()->getName(), $ride->getDateTime()->format('d.m.Y'));
+    }
+
+    protected function generateDateTime(City $city, string $dayString, string $timeString): ?Carbon
+    {
+        try {
+            $day = $dayString;
+            $time = substr($timeString, 0, 0);
+
+            $dateTimeString = sprintf('%s %s', $day, $time);
+            $dateTime = new Carbon($dateTimeString, $city->getTimezone());
+
+            return $dateTime;
+        } catch (\Exception $exception) {
+            return null;
+        }
     }
 }

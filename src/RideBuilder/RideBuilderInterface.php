@@ -6,5 +6,5 @@ use App\Model\Ride;
 
 interface RideBuilderInterface
 {
-    public function buildFromFeature(\stdClass $feature): Ride;
+    public function buildFromFeature(\stdClass $feature): ?Ride;
 }
