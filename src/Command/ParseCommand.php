@@ -36,12 +36,6 @@ class ParseCommand extends Command
     {
         $this
             ->setDescription('Fetch kidical mass rides from kinderaufsrad.org')
-            ->addOption('complete-only', null, InputOption::VALUE_NONE, 'Only list rides with complete data')
-            ->addOption('unexisting-only', null, InputOption::VALUE_NONE, 'Do not list already existing rides')
-            ->addOption('require-existing-city', null, InputOption::VALUE_NONE, 'Require ride to belong to an existing city')
-            ->addOption('require-not-null-city', null, InputOption::VALUE_NONE, 'Require ride to have a not null city')
-            ->addOption('require-location', null, InputOption::VALUE_NONE, 'Require ride to have a location')
-            ->addOption('require-datetime', null, InputOption::VALUE_NONE, 'Require ride to have a datetime')
             ->addOption('update', null, InputOption::VALUE_NONE, 'Update rides')
         ;
     }
@@ -72,61 +66,6 @@ class ParseCommand extends Command
             if ($ride) {
                 $rideList[] = $ride;
             }
-        }
-        dd($rideList);
-
-        $crawler = new Crawler($content);
-        $crawler = $crawler->filter('#aktionsorte .drag_element > div');
-
-        $rideList = [];
-
-        $crawler->each(function (Crawler $elementCrawler) use (&$rideList) {
-            $elementHtml = $elementCrawler->attr('data-html');
-            $crawler = new Crawler($elementHtml);
-
-            $ride = $this->rideBuilder->buildWithCrawler($crawler);
-
-            $rideList[] = $ride;
-        });
-
-        $rideList = array_filter($rideList, function(Ride $ride): bool
-        {
-            return $ride->getCityName() && $ride->getCity();
-        });
-
-        if ($input->getOption('unexisting-only')) {
-            $rideList = array_filter($rideList, function(Ride $ride): bool
-            {
-                return !$this->rideRetriever->doesRideExist($ride);
-            });
-        }
-
-        if ($input->getOption('require-datetime') || $input->getOption('complete-only')) {
-            $rideList = array_filter($rideList, function(Ride $ride): bool
-            {
-                return ($ride->getDateTime() && $ride->getDateTime()->format('H:i') !== '00:00');
-            });
-        }
-
-        if ($input->getOption('require-location') || $input->getOption('complete-only')) {
-            $rideList = array_filter($rideList, function(Ride $ride): bool
-            {
-                return ($ride->getLocation() && $ride->getLatitude() && $ride->getLongitude());
-            });
-        }
-
-        if ($input->getOption('require-existing-city') || $input->getOption('complete-only')) {
-            $rideList = array_filter($rideList, function(Ride $ride): bool
-            {
-                return $ride->getCity() !== null;
-            });
-        }
-
-        if ($input->getOption('require-not-null-city') || $input->getOption('complete-only')) {
-            $rideList = array_filter($rideList, function(Ride $ride): bool
-            {
-                return !$ride->getCity() && $ride->getCityName();
-            });
         }
 
         $rideList = $this->sortRideList($rideList);
