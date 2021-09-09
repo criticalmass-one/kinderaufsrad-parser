@@ -17,7 +17,7 @@ class LocationCoordLookup implements LocationCoordLookupInterface
 
     public function lookupCoordsForRideLocation(Ride $ride): Ride
     {
-        if (!$ride->getCityName() || !$ride->getLocation()) {
+        if (!$ride->getCity() || !$ride->getLocation()) {
             return $ride;
         }
 
@@ -38,7 +38,7 @@ class LocationCoordLookup implements LocationCoordLookupInterface
     {
         $search = $this->nominatim->newSearch()
             ->country('Deutschland')
-            ->city($ride->getCityName())
+            ->city($ride->getCity()->getName())
             ->street($ride->getLocation())
             ->addressDetails()
             ->limit(1);

@@ -44,15 +44,19 @@ class RideBuilder implements RideBuilderInterface
         $ride->setDateTime($dateTime);
 
         $location = $feature->properties->Startort;
+        $ride->setLocation($location);
 
+        // set basic coords here
         $latitude = $feature->geometry->coordinates[1];
         $longitude = $feature->geometry->coordinates[0];
+
+        // and do a precise location lookup here
+        $ride = $this->lookupLocation($ride);
 
         $title = $this->generateTitle($ride);
 
         $ride
             ->setTitle($title)
-            ->setLocation($location)
             ->setRideType('KIDICAL_MASS')
             ->setLatitude($latitude)
             ->setLongitude($longitude)
@@ -81,5 +85,14 @@ class RideBuilder implements RideBuilderInterface
         } catch (\Exception $exception) {
             return null;
         }
+    }
+
+    /**
+     * Our geojson already provides latitude and longitude, but those values are not placed at the location, but in the
+     * city center to be displayed in the large map. And that’s why we do another lookup here.
+     */
+    protected function lookupLocation(Ride $ride): Ride
+    {
+        return $this->locationCoordLookup->lookupCoordsForRideLocation($ride);
     }
 }
