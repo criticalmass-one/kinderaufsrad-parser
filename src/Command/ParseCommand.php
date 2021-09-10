@@ -89,7 +89,12 @@ class ParseCommand extends Command
                 if ($input->getOption('update')) {
                     $this->ridePusher->postRide($ride);
                 } else {
-                    $this->ridePusher->putRide($ride);
+                    try {
+                        $this->ridePusher->putRide($ride);
+                    } catch (\Exception $exception) {
+                        $io->error(sprintf('Ride %s does already exist', $ride->getTitle()));
+                    }
+
                 }
 
                 $progressBar->advance();
