@@ -36,6 +36,7 @@ class ParseCommand extends Command
     {
         $this
             ->setDescription('Fetch kidical mass rides from kinderaufsrad.org')
+            ->addOption('unexisting-only', null, InputOption::VALUE_NONE, 'Do not list already existing rides')
             ->addOption('update', null, InputOption::VALUE_NONE, 'Update rides')
         ;
     }
@@ -69,6 +70,13 @@ class ParseCommand extends Command
         }
 
         $rideList = $this->sortRideList($rideList);
+
+        if ($input->getOption('unexisting-only')) {
+            $rideList = array_filter($rideList, function(Ride $ride): bool
+            {
+                return !$this->rideRetriever->doesRideExist($ride);
+            });
+        }
 
         $io->table(['City', 'Title', 'Slug', 'DateTime', 'Location', 'Latitude', 'Longitude'], array_map(function (Ride $ride): array {
             return [$ride->getCity() ? $ride->getCity()->getName() : $ride->getCityName() . '?', $ride->getTitle(), $ride->getSlug(), $ride->hasDateTime() ? $ride->getDateTime()->format('Y-m-d H:i') : '', $ride->getLocation(), $ride->getLatitude(), $ride->getLongitude()];
