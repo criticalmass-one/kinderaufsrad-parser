@@ -46,11 +46,6 @@ class RideBuilder implements RideBuilderInterface
         $location = $feature->properties->Startort;
         $ride->setLocation($location);
 
-        // set basic coords here
-        $latitude = $feature->geometry->coordinates[1];
-        $longitude = $feature->geometry->coordinates[0];
-
-        // and do a precise location lookup here
         $ride = $this->lookupLocation($ride);
 
         $title = $this->generateTitle($ride);
@@ -58,8 +53,6 @@ class RideBuilder implements RideBuilderInterface
         $ride
             ->setTitle($title)
             ->setRideType('KIDICAL_MASS')
-            ->setLatitude($latitude)
-            ->setLongitude($longitude)
         ;
 
         $ride = $this->slugGenerator->generateForRide($ride);
