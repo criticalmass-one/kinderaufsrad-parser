@@ -16,6 +16,8 @@ class Ride
      */
     protected ?int $id = null;
 
+    protected ?string $cityName = null;
+
     /**
      * @JMS\Expose
      */
@@ -83,6 +85,19 @@ class Ride
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function setCityName(string $cityName = null): self
+    {
+        $this->cityName = $cityName;
+
+        return $this;
+    }
+
+    public function getCityName(): ?string
+    {
+        return $this->cityName;
+
     }
 
     public function setCity(City $city = null): self

@@ -37,6 +37,7 @@ class ParseCommand extends Command
         $this
             ->setDescription('Fetch kidical mass rides from kinderaufsrad.org')
             ->addOption('unexisting-only', null, InputOption::VALUE_NONE, 'Do not list already existing rides')
+            ->addOption('non-existing-city-only', null, InputOption::VALUE_NONE, 'Only list rides in not existing cities')
             ->addOption('update', null, InputOption::VALUE_NONE, 'Update rides')
         ;
     }
@@ -75,6 +76,13 @@ class ParseCommand extends Command
             $rideList = array_filter($rideList, function(Ride $ride): bool
             {
                 return !$this->rideRetriever->doesRideExist($ride);
+            });
+        }
+
+        if ($input->getOption('non-existing-city-only')) {
+            $rideList = array_filter($rideList, function(Ride $ride): bool
+            {
+                return $ride->getCity() === null;
             });
         }
 
