@@ -27,13 +27,13 @@ class RideBuilder implements RideBuilderInterface
     {
         $ride = new Ride();
 
-        $city = $this->cityFetcher->getCityForName($feature->properties->name ?? $feature->properties->Name);
+        $cityName = $this->extractCityName($feature);
+        $ride->setCityName($cityName);
+        $city = $this->cityFetcher->getCityForName($cityName);
 
-        if (!$city) {
-            return null;
+        if ($city) {
+            $ride->setCity($city);
         }
-
-        $ride->setCity($city);
 
         $dateTime = $this->generateDateTime($city, $feature->properties->Tag, $feature->properties->Uhrzeit);
 
@@ -52,8 +52,7 @@ class RideBuilder implements RideBuilderInterface
 
         $ride
             ->setTitle($title)
-            ->setRideType('KIDICAL_MASS')
-        ;
+            ->setRideType('KIDICAL_MASS');
 
         $ride = $this->slugGenerator->generateForRide($ride);
 
@@ -62,17 +61,19 @@ class RideBuilder implements RideBuilderInterface
 
     protected function generateTitle(Ride $ride): string
     {
-        return sprintf('Kidical Mass %s %s', $ride->getCity()->getName(), $ride->getDateTime()->format('d.m.Y'));
+        return sprintf('Kidical Mass %s %s', $ride->getCityName(), $ride->getDateTime()->format('d.m.Y'));
     }
 
-    protected function generateDateTime(City $city, string $dayString, string $timeString): ?Carbon
+    protected function generateDateTime(City $city = null, string $dayString, string $timeString): ?Carbon
     {
+        $timezoneString = $city ? $city->getTimezone() : 'Europe/Berlin';
+
         try {
             $day = $dayString;
-            $time = substr($timeString, 0, 0);
+            $time = str_replace(['Uhr', 'folgt'], ['', ''], $timeString);
 
             $dateTimeString = sprintf('%s %s', $day, $time);
-            $dateTime = new Carbon($dateTimeString, $city->getTimezone());
+            $dateTime = new Carbon($dateTimeString, $timezoneString);
 
             return $dateTime;
         } catch (\Exception $exception) {
@@ -87,5 +88,14 @@ class RideBuilder implements RideBuilderInterface
     protected function lookupLocation(Ride $ride): Ride
     {
         return $this->locationCoordLookup->lookupCoordsForRideLocation($ride);
+    }
+
+    protected function extractCityName(\stdClass $feature): string
+    {
+        $cityName = $feature->properties->name ?? $feature->properties->Name;
+
+        $cityName = trim($cityName);
+
+        return $cityName;
     }
 }

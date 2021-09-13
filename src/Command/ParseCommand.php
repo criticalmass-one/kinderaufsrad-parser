@@ -93,16 +93,20 @@ class ParseCommand extends Command
         if ($io->ask(sprintf('Should I post those %d rides to critical mass api? [y/n]', count($rideList)), 'n') === 'y') {
             $progressBar = $io->createProgressBar(count($rideList));
 
+            /** @var Ride $ride */
             foreach ($rideList as $ride) {
                 if ($input->getOption('update')) {
-                    $this->ridePusher->postRide($ride);
+                    try {
+                        $this->ridePusher->postRide($ride);
+                    } catch (\Exception $exception) {
+                        $io->error(sprintf('Ride %s (%s)not found', $ride->getTitle(), $ride->getSlug()));
+                    }
                 } else {
                     try {
                         $this->ridePusher->putRide($ride);
                     } catch (\Exception $exception) {
-                        $io->error(sprintf('Ride %s does already exist', $ride->getTitle()));
+                        $io->error(sprintf('Ride %s (%s) does already exist', $ride->getTitle(), $ride->getSlug()));
                     }
-
                 }
 
                 $progressBar->advance();
