@@ -39,6 +39,7 @@ class ParseCommand extends Command
             ->setDescription('Fetch kidical mass rides from kinderaufsrad.org')
             ->addArgument('map-identifier', InputArgument::REQUIRED, 'ID of geodata url')
             ->addOption('unexisting-only', null, InputOption::VALUE_NONE, 'Do not list already existing rides')
+            ->addOption('existing-city-only', null, InputOption::VALUE_NONE, 'Only list rides in existing cities')
             ->addOption('non-existing-city-only', null, InputOption::VALUE_NONE, 'Only list rides in not existing cities')
             ->addOption('update', null, InputOption::VALUE_NONE, 'Update rides')
         ;
@@ -86,6 +87,13 @@ class ParseCommand extends Command
             $rideList = array_filter($rideList, function(Ride $ride): bool
             {
                 return $ride->getCity() === null;
+            });
+        }
+
+        if ($input->getOption('existing-city-only')) {
+            $rideList = array_filter($rideList, function(Ride $ride): bool
+            {
+                return $ride->getCity() !== null;
             });
         }
 
