@@ -7,6 +7,7 @@ use App\RideBuilder\RideBuilderInterface;
 use App\RidePusher\RidePusherInterface;
 use App\RideRetriever\RideRetrieverInterface;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -36,6 +37,7 @@ class ParseCommand extends Command
     {
         $this
             ->setDescription('Fetch kidical mass rides from kinderaufsrad.org')
+            ->addArgument('map-identifier', InputArgument::REQUIRED, 'ID of geodata url')
             ->addOption('unexisting-only', null, InputOption::VALUE_NONE, 'Do not list already existing rides')
             ->addOption('non-existing-city-only', null, InputOption::VALUE_NONE, 'Only list rides in not existing cities')
             ->addOption('update', null, InputOption::VALUE_NONE, 'Update rides')
@@ -46,7 +48,8 @@ class ParseCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
 
-        $content = file_get_contents('https://umap.openstreetmap.fr/de/datalayer/1885338/');
+        $url = sprintf('https://umap.openstreetmap.fr/de/datalayer/%d/', $input->getArgument('map-identifier'));
+        $content = file_get_contents($url);
 
         $json = json_decode($content);
 
