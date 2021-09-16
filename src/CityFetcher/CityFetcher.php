@@ -28,6 +28,8 @@ class CityFetcher implements CityFetcherInterface
 
     public function getCityForName(string $name): ?City
     {
+        $name = $this->fixCityName($name);
+
         $query = [
             'name' => $name,
         ];
@@ -37,5 +39,12 @@ class CityFetcher implements CityFetcherInterface
         $cityList = $this->serializer->deserialize($response->getBody()->getContents(), 'array<App\Model\City>', 'json');
 
         return array_pop($cityList);
+    }
+
+    protected function fixCityName(string $name): string
+    {
+        $name = str_replace(['(AU)', '(AU )', '(CH)', '(FR)'], '', $name);
+
+        return trim($name);
     }
 }
