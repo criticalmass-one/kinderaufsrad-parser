@@ -43,7 +43,33 @@ class CityFetcher implements CityFetcherInterface
 
     protected function fixCityName(string $name): string
     {
+        $mapping = [
+            'Ulm' => 'Ulm & Neu-Ulm',
+            'Stuttgart-Botnang' => 'Stuttgart',
+            'Ravensburg' => 'Ravensburg',
+            'Offenbach am Main' => 'Offenbach',
+            'München Giesing Ost' => 'München',
+            'Konstanz(-Kreuzlingen)' => 'Konstanz',
+            'Kempen – St. Hubert' => 'Kempen',
+            'Giessen' => 'Gießen',
+            'Frankfurt am Main' => 'Frankfurt',
+            'Brandenburg an der Havel' => 'Brandenburg',
+            'Bottrop Kirchhellen' => 'Bottrop',
+            'Berlin ADFC Kreisfahrt' => 'Berlin',
+            'Berlin Charlottenburg-Wilmersdorf' => 'Berlin',
+            'Berlin Friedrichshain-Kreuzberg' => 'Berlin',
+            'Berlin Lichtenberg' => 'Berlin',
+            'Berlin Pankow' => 'Pankow',
+            'Berlin Reinickendorf' => 'Berlin',
+            'Berlin Steglitz-Zehlendorf' => 'Berlin',
+            'Berlin Treptow-Köpenick' => 'Berlin',
+        ];
+
         $name = str_replace(['(AU)', '(AU )', '(CH)', '(FR)'], '', $name);
+
+        if (array_key_exists($name, $mapping)) {
+            $name = $mapping[$name];
+        }
 
         return trim($name);
     }
