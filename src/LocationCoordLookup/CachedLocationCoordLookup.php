@@ -23,11 +23,11 @@ class CachedLocationCoordLookup extends LocationCoordLookup
 
     public function lookupCoordsForRideLocation(Ride $ride): Ride
     {
-        if (!$ride->getCityName() || !$ride->getLocation()) {
+        if (!$ride->getCity() || !$ride->getLocation()) {
             return $ride;
         }
 
-        $key = md5(sprintf('%s-%s', $ride->getCityName(), $ride->getLocation()));
+        $key = md5(sprintf('%s-%s', $ride->getCity()->getName(), $ride->getLocation()));
 
         $result = $this->cache->get($key, function (ItemInterface $item) use ($ride): array {
             $item->expiresAfter(self::CACHE_TTL);

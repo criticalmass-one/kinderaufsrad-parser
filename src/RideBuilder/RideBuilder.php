@@ -23,84 +23,79 @@ class RideBuilder implements RideBuilderInterface
         $this->slugGenerator = $slugGenerator;
     }
 
-    public function buildWithCrawler(Crawler $crawler): Ride
+    public function buildFromFeature(\stdClass $feature): ?Ride
     {
         $ride = new Ride();
 
-        $title = $this->findTitle($crawler);
-
-        if (!$title) {
-            return $ride;
-        }
-
-        $cityName = $this->findCityName($title);
-
-        if (!$cityName) {
-            return $ride;
-        }
-
+        $cityName = $this->extractCityName($feature);
+        $ride->setCityName($cityName);
         $city = $this->cityFetcher->getCityForName($cityName);
 
-        if (!$city) {
-            return $ride;
+        if ($city) {
+            $ride->setCity($city);
         }
 
+        $dateTime = $this->generateDateTime($city, $feature->properties->Tag, $feature->properties->Uhrzeit);
+
+        if (!$dateTime) {
+            return null;
+        }
+
+        $ride->setDateTime($dateTime);
+
+        $location = $feature->properties->Startort;
+        $ride->setLocation($location);
+
+        $ride = $this->lookupLocation($ride);
+
+        $title = $this->generateTitle($ride);
+
         $ride
-            ->setCity($city)
             ->setTitle($title)
-            ->setCityName($cityName)
-            ->setDateTime($this->findDateTime($crawler, $city))
-            ->setLocation($this->findLocation($crawler))
             ->setRideType('KIDICAL_MASS');
 
-        $ride = $this->locationCoordLookup->lookupCoordsForRideLocation($ride);
         $ride = $this->slugGenerator->generateForRide($ride);
 
         return $ride;
     }
 
-    protected function findTitle(Crawler $crawler): ?string
+    protected function generateTitle(Ride $ride): string
     {
-        $h2List = $crawler->filter('h2');
-
-        foreach ($h2List as $h2Element) {
-            if ($h2Element->textContent) {
-                return $h2Element->textContent;
-            }
-        }
-
-        return null;
+        return sprintf('Kidical Mass %s %s', $ride->getCityName(), $ride->getDateTime()->format('d.m.Y'));
     }
 
-    protected function findCityName(string $title): string
+    protected function generateDateTime(City $city = null, string $dayString, string $timeString): ?Carbon
     {
-        return str_replace('Kidical Mass ', '', $title);
+        $timezoneString = $city ? $city->getTimezone() : 'Europe/Berlin';
+
+        try {
+            $day = $dayString;
+            $time = str_replace(['Uhr', 'folgt'], ['', ''], $timeString);
+
+            $dateTimeString = sprintf('%s %s', $day, $time);
+            $dateTime = new Carbon($dateTimeString, $timezoneString);
+
+            return $dateTime;
+        } catch (\Exception $exception) {
+            return null;
+        }
     }
 
-    protected function findDateTime(Crawler $crawler, City $city): ?\DateTime
+    /**
+     * Our geojson already provides latitude and longitude, but those values are not placed at the location, but in the
+     * city center to be displayed in the large map. And that’s why we do another lookup here.
+     */
+    protected function lookupLocation(Ride $ride): Ride
     {
-        $dateTimeList = $crawler->filter('p > b > span');
-
-        foreach ($dateTimeList as $dateTimeElement) {
-            $germanDateTimeSpec = $dateTimeElement->textContent;
-
-            return DateTimeDetector::detect($germanDateTimeSpec, $city->getTimezone());
-        }
-
-        return null;
+        return $this->locationCoordLookup->lookupCoordsForRideLocation($ride);
     }
 
-    protected function findLocation(Crawler $crawler): ?string
+    protected function extractCityName(\stdClass $feature): string
     {
-        $locationList = $crawler->filter('div span');
+        $cityName = $feature->properties->name ?? $feature->properties->Name;
 
-        foreach ($locationList as $locationElement) {
-            $locationString = $locationElement->textContent;
-            if (strpos($locationString, 'Start: ') === 0 && strpos($locationString, 'folgt') === false) {
-                return str_replace('Start: ', '', $locationString);
-            }
-        }
+        $cityName = trim($cityName);
 
-        return null;
+        return $cityName;
     }
 }

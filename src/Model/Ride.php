@@ -110,7 +110,6 @@ class Ride
     public function getCity(): ?City
     {
         return $this->city;
-
     }
 
     public function setDateTime(Carbon $dateTime = null): self

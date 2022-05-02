@@ -24,6 +24,8 @@ class CachedCityFetcher extends CityFetcher
         $key = md5($name);
 
         $cityJson = $this->cache->get($key, function () use ($name): string {
+            $name = $this->fixCityName($name);
+
             $query = [
                 'name' => $name,
             ];
