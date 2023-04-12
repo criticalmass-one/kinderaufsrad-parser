@@ -8,7 +8,7 @@ use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 
 class CachedCityFetcher extends CityFetcher
 {
-    const CACHE_TTL = 3600;
+    public const CACHE_TTL = 3600;
 
     protected FilesystemAdapter $cache;
 

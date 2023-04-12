@@ -12,15 +12,8 @@ use Symfony\Component\DomCrawler\Crawler;
 
 class RideBuilder implements RideBuilderInterface
 {
-    protected LocationCoordLookupInterface $locationCoordLookup;
-    protected CityFetcherInterface $cityFetcher;
-    protected SlugGeneratorInterface $slugGenerator;
-
-    public function __construct(LocationCoordLookupInterface $locationCoordLookup, CityFetcherInterface $cityFetcher, SlugGeneratorInterface $slugGenerator)
+    public function __construct(protected LocationCoordLookupInterface $locationCoordLookup, protected CityFetcherInterface $cityFetcher, protected SlugGeneratorInterface $slugGenerator)
     {
-        $this->locationCoordLookup = $locationCoordLookup;
-        $this->cityFetcher = $cityFetcher;
-        $this->slugGenerator = $slugGenerator;
     }
 
     public function buildFromFeature(\stdClass $feature): ?Ride
@@ -35,7 +28,7 @@ class RideBuilder implements RideBuilderInterface
             $ride->setCity($city);
         }
 
-        $dateTime = $this->generateDateTime($city, $feature->properties->Tag, $feature->properties->Uhrzeit);
+        $dateTime = $this->generateDateTime($feature->properties->Tag, $feature->properties->Uhrzeit, $city);
 
         if (!$dateTime) {
             return null;
@@ -64,7 +57,7 @@ class RideBuilder implements RideBuilderInterface
         return sprintf('Kidical Mass %s %s', $ride->getCityName(), $ride->getDateTime()->format('d.m.Y'));
     }
 
-    protected function generateDateTime(City $city = null, string $dayString, string $timeString): ?Carbon
+    protected function generateDateTime(string $dayString, string $timeString, City $city = null): ?Carbon
     {
         $timezoneString = $city ? $city->getTimezone() : 'Europe/Berlin';
 
@@ -76,7 +69,7 @@ class RideBuilder implements RideBuilderInterface
             $dateTime = new Carbon($dateTimeString, $timezoneString);
 
             return $dateTime;
-        } catch (\Exception $exception) {
+        } catch (\Exception) {
             return null;
         }
     }
