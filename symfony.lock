@@ -61,6 +61,9 @@
     "phpstan/phpdoc-parser": {
         "version": "1.4.5"
     },
+    "phpstan/phpstan": {
+        "version": "1.10.11"
+    },
     "psr/cache": {
         "version": "1.0.1"
     },
@@ -84,6 +87,9 @@
     },
     "ralouphie/getallheaders": {
         "version": "3.0.3"
+    },
+    "rector/rector": {
+        "version": "0.15.24"
     },
     "rosamarsky/jms-carbon-handler": {
         "version": "2.0"

@@ -39,7 +39,7 @@ class DateTimeDetector
                 if ($dateTime) {
                     return $dateTime;
                 }
-            } catch (\Exception $exception) {
+            } catch (\Exception) {
 
             }
         }

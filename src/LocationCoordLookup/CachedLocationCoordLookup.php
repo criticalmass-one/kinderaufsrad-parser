@@ -10,7 +10,7 @@ use Symfony\Contracts\Cache\ItemInterface;
 
 class CachedLocationCoordLookup extends LocationCoordLookup
 {
-    const CACHE_TTL = 3600;
+    public const CACHE_TTL = 3600;
 
     protected FilesystemAdapter $cache;
 

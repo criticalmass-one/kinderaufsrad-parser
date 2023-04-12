@@ -21,6 +21,7 @@
         "symfony/yaml": "^6.0"
     },
     "require-dev": {
+        "rector/rector": "^0.15.24",
         "symfony/maker-bundle": "^1.21"
     },
     "config": {
