@@ -14,11 +14,8 @@ return static function (RectorConfig $rectorConfig): void {
         __DIR__ . '/tests',
     ]);
 
-    // register a single rule
-    $rectorConfig->rule(InlineConstructorDefaultToPropertyRector::class);
-
-    // define sets of rules
-    //    $rectorConfig->sets([
-    //        LevelSetList::UP_TO_PHP_81
-    //    ]);
+    $rectorConfig->sets([
+        LevelSetList::UP_TO_PHP_80,
+        \Rector\Symfony\Set\SymfonyLevelSetList::UP_TO_SYMFONY_60,
+    ]);
 };
