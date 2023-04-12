@@ -5,7 +5,7 @@ namespace App\CityFetcher;
 use App\Model\City;
 use App\Model\Ride;
 use GuzzleHttp\Client;
-use JMS\Serializer\SerializerInterface;
+use Symfony\Component\Serializer\SerializerInterface;
 
 class CityFetcher implements CityFetcherInterface
 {

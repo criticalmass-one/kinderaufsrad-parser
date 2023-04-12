@@ -5,7 +5,7 @@ namespace App\RidePusher;
 use App\Model\Ride;
 use Doctrine\Common\Annotations\AnnotationReader;
 use GuzzleHttp\Client;
-use JMS\Serializer\SerializerInterface;
+use Symfony\Component\Serializer\SerializerInterface;
 
 class RidePusher implements RidePusherInterface
 {

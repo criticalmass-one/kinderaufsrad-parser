@@ -3,8 +3,8 @@
 namespace App\CityFetcher;
 
 use App\Model\City;
-use JMS\Serializer\SerializerInterface;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
+use Symfony\Component\Serializer\SerializerInterface;
 
 class CachedCityFetcher extends CityFetcher
 {
