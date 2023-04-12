@@ -3,7 +3,6 @@
 namespace App\RidePusher;
 
 use App\Model\Ride;
-use Doctrine\Common\Annotations\AnnotationReader;
 use GuzzleHttp\Client;
 use Symfony\Component\Serializer\SerializerInterface;
 
@@ -17,9 +16,6 @@ class RidePusher implements RidePusherInterface
             'base_uri' => $criticalmassHostname,
             'verify' => false,
         ]);
-
-        // @see https://github.com/symfony/symfony/issues/29161
-        AnnotationReader::addGlobalIgnoredName('alias');
     }
 
     public function postRide(Ride $ride): self
