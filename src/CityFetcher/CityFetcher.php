@@ -63,6 +63,9 @@ class CityFetcher implements CityFetcherInterface
             'Berlin Reinickendorf' => 'Berlin',
             'Berlin Steglitz-Zehlendorf' => 'Berlin',
             'Berlin Treptow-Köpenick' => 'Berlin',
+            'Geneva' => 'Genf',
+            'Halle (Saale)' => 'Halle',
+            'Immenstadt' => 'Immenstadt im Allgäu'
         ];
 
         $name = str_replace(['(AU)', '(AU )', '(CH)', '(FR)'], '', $name);
