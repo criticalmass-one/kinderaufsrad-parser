@@ -65,6 +65,7 @@ class CityFetcher implements CityFetcherInterface
             'Berlin Treptow-Köpenick' => 'Berlin',
             'Geneva' => 'Genf',
             'Halle (Saale)' => 'Halle',
+            'Oldenburg (Oldb./Nds.)' => 'Oldenburg',
             'Immenstadt' => 'Immenstadt im Allgäu',
             'Bottrop-Kirchhellen' => 'Bottrop',
             'Braunau' => 'Braunau am Inn',
