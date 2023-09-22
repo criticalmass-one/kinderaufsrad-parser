@@ -16,27 +16,16 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 class ParseCommand extends Command
 {
     protected static $defaultName = 'kidicalmass:parse';
+    protected static $defaultDescription = 'Fetch kidical mass rides from kinderaufsrad.org';
 
-    protected RideBuilderInterface $rideBuilder;
-
-    protected RideRetrieverInterface $rideRetriever;
-
-    protected RidePusherInterface $ridePusher;
-
-    public function __construct(RideBuilderInterface $rideBuilder, RideRetrieverInterface $rideRetriever, RidePusherInterface $ridePusher, string $name = null)
+    public function __construct(protected RideBuilderInterface $rideBuilder, protected RideRetrieverInterface $rideRetriever, protected RidePusherInterface $ridePusher, string $name = null)
     {
-        $this->rideBuilder = $rideBuilder;
-        $this->rideRetriever = $rideRetriever;
-        $this->ridePusher = $ridePusher;
-
         parent::__construct($name);
     }
 
     protected function configure()
     {
-        $this
-            ->setDescription('Fetch kidical mass rides from kinderaufsrad.org')
-            ->addArgument('map-identifier', InputArgument::REQUIRED, 'ID of geodata url')
+        $this->addArgument('map-identifier', InputArgument::REQUIRED, 'ID of geodata url')
             ->addOption('unexisting-only', null, InputOption::VALUE_NONE, 'Do not list already existing rides')
             ->addOption('existing-city-only', null, InputOption::VALUE_NONE, 'Only list rides in existing cities')
             ->addOption('non-existing-city-only', null, InputOption::VALUE_NONE, 'Only list rides in not existing cities')
@@ -51,12 +40,12 @@ class ParseCommand extends Command
         $url = sprintf('https://umap.openstreetmap.fr/de/datalayer/%d/', $input->getArgument('map-identifier'));
         $content = file_get_contents($url);
 
-        $json = json_decode($content);
+        $json = json_decode($content, null, 512, JSON_THROW_ON_ERROR);
 
         $cityFeatureList = [];
 
         foreach ($json->features as $feature) {
-            $name = isset($feature->properties->Name) ? $feature->properties->Name : $feature->properties->name;
+            $name = $feature->properties->Name ?? $feature->properties->name;
 
             $name = trim($name);
 
@@ -76,29 +65,18 @@ class ParseCommand extends Command
         $rideList = $this->sortRideList($rideList);
 
         if ($input->getOption('unexisting-only')) {
-            $rideList = array_filter($rideList, function(Ride $ride): bool
-            {
-                return !$this->rideRetriever->doesRideExist($ride);
-            });
+            $rideList = array_filter($rideList, fn(Ride $ride): bool => !$this->rideRetriever->doesRideExist($ride));
         }
 
         if ($input->getOption('non-existing-city-only')) {
-            $rideList = array_filter($rideList, function(Ride $ride): bool
-            {
-                return $ride->getCity() === null;
-            });
+            $rideList = array_filter($rideList, fn(Ride $ride): bool => $ride->getCity() === null);
         }
 
         if ($input->getOption('existing-city-only')) {
-            $rideList = array_filter($rideList, function(Ride $ride): bool
-            {
-                return $ride->getCity() !== null;
-            });
+            $rideList = array_filter($rideList, fn(Ride $ride): bool => $ride->getCity() !== null);
         }
 
-        $io->table(['City', 'Title', 'Slug', 'DateTime', 'Location', 'Latitude', 'Longitude'], array_map(function (Ride $ride): array {
-            return [$ride->getCity() ? $ride->getCity()->getName() : $ride->getCityName() . '?', $ride->getTitle(), $ride->getSlug(), $ride->hasDateTime() ? $ride->getDateTime()->format('Y-m-d H:i') : '', $ride->getLocation(), $ride->getLatitude(), $ride->getLongitude()];
-        }, $rideList));
+        $io->table(['City', 'Title', 'Slug', 'DateTime', 'Location', 'Latitude', 'Longitude'], array_map(fn(Ride $ride): array => [$ride->getCity() ? $ride->getCity()->getName() : $ride->getCityName() . '?', $ride->getTitle(), $ride->getSlug(), $ride->hasDateTime() ? $ride->getDateTime()->format('Y-m-d H:i') : '', $ride->getLocation(), $ride->getLatitude(), $ride->getLongitude()], $rideList));
 
         if ($io->ask(sprintf('Should I post those %d rides to critical mass api? [y/n]', count($rideList)), 'n') === 'y') {
             $progressBar = $io->createProgressBar(count($rideList));
@@ -108,13 +86,13 @@ class ParseCommand extends Command
                 if ($input->getOption('update')) {
                     try {
                         $this->ridePusher->postRide($ride);
-                    } catch (\Exception $exception) {
+                    } catch (\Exception) {
                         $io->error(sprintf('Ride %s (%s)not found', $ride->getTitle(), $ride->getSlug()));
                     }
                 } else {
                     try {
                         $this->ridePusher->putRide($ride);
-                    } catch (\Exception $exception) {
+                    } catch (\Exception) {
                         $io->error(sprintf('Ride %s (%s) does already exist', $ride->getTitle(), $ride->getSlug()));
                     }
                 }
@@ -143,12 +121,7 @@ class ParseCommand extends Command
             } else {
                 $cityBName = $b->getCity()->getName();
             }
-
-            if ($cityAName === $cityBName) {
-                return 0;
-            }
-
-            return ($cityAName < $cityBName) ? -1 : 1;
+            return $cityAName <=> $cityBName;
         });
 
         return $rideList;

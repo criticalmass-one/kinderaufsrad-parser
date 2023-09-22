@@ -10,12 +10,9 @@ use JMS\Serializer\SerializerInterface;
 class RideRetriever implements RideRetrieverInterface
 {
     protected Client $client;
-    protected SerializerInterface $serializer;
 
-    public function __construct(SerializerInterface $serializer, string $criticalmassHostname)
+    public function __construct(protected SerializerInterface $serializer, string $criticalmassHostname)
     {
-        $this->serializer = $serializer;
-
         $this->client = new Client([
             'base_uri' => $criticalmassHostname,
             'verify' => false,
@@ -54,7 +51,7 @@ class RideRetriever implements RideRetrieverInterface
     {
         try {
             $response = $this->client->get(sprintf('/api/%s/%s', $citySlug, $rideIdentifier));
-        } catch (ClientException $clientException) {
+        } catch (ClientException) {
             return null;
         }
 

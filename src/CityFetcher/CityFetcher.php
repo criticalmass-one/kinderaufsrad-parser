@@ -10,12 +10,9 @@ use JMS\Serializer\SerializerInterface;
 class CityFetcher implements CityFetcherInterface
 {
     protected Client $client;
-    protected SerializerInterface $serializer;
 
-    public function __construct(SerializerInterface $serializer, string $criticalmassHostname)
+    public function __construct(protected SerializerInterface $serializer, string $criticalmassHostname)
     {
-        $this->serializer = $serializer;
-
         $this->client = new Client([
             'base_uri' => $criticalmassHostname,
         ]);
