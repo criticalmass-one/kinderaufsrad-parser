@@ -60,6 +60,22 @@ class CityFetcher implements CityFetcherInterface
             'Berlin Reinickendorf' => 'Berlin',
             'Berlin Steglitz-Zehlendorf' => 'Berlin',
             'Berlin Treptow-Köpenick' => 'Berlin',
+            'Geneva' => 'Genf',
+            'Halle (Saale)' => 'Halle',
+            'Oldenburg (Oldb./Nds.)' => 'Oldenburg',
+            'Immenstadt' => 'Immenstadt im Allgäu',
+            'Bottrop-Kirchhellen' => 'Bottrop',
+            'Braunau' => 'Braunau am Inn',
+            'Earlswood/ Redhill' => 'Redhill',
+            'Gemeinde Lüdersdorf, Nordwestmecklenburg' => 'Lüdersdorf',
+            'Nienburg/Weser' => 'Nienburg',
+            'Ravensburg / Weingarten' => 'Ravensburg',
+            'Wentorf bei Hamburg' => 'Wentorf',
+            'Wien Neustadt' => 'Wien',
+            'Dessau-Roßlau' => 'Dessau',
+            'Freiburg im Breisgau' => 'Freiburg',
+            'Recklinghausen-Süd' => 'Recklinghausen',
+            'Stuttgart-Vaihingen' => 'Stuttgart'
         ];
 
         $name = str_replace(['(AU)', '(AU )', '(CH)', '(FR)'], '', $name);
