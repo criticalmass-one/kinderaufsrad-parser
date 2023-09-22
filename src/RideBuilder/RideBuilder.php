@@ -12,8 +12,9 @@ use Symfony\Component\DomCrawler\Crawler;
 
 class RideBuilder implements RideBuilderInterface
 {
-    public function __construct(protected LocationCoordLookupInterface $locationCoordLookup, protected CityFetcherInterface $cityFetcher, protected SlugGeneratorInterface $slugGenerator)
+    public function __construct(protected CityFetcherInterface $cityFetcher, protected SlugGeneratorInterface $slugGenerator)
     {
+
     }
 
     public function buildFromFeature(\stdClass $feature): ?Ride
@@ -28,6 +29,10 @@ class RideBuilder implements RideBuilderInterface
             $ride->setCity($city);
         }
 
+        if (!isset($feature->properties->Tag) || !isset($feature->properties->Uhrzeit)) {
+            return null;
+        }
+
         $dateTime = $this->generateDateTime($feature->properties->Tag, $feature->properties->Uhrzeit, $city);
 
         if (!$dateTime) {
@@ -36,10 +41,18 @@ class RideBuilder implements RideBuilderInterface
 
         $ride->setDateTime($dateTime);
 
-        $location = $feature->properties->Startort;
-        $ride->setLocation($location);
+        if (isset($feature->properties->Start)) {
+            $location = $feature->properties->Start;
+            $ride->setLocation($location);
+        }
 
-        $ride = $this->lookupLocation($ride);
+        $latitude = $feature->geometry->coordinates[1];
+        $longitude = $feature->geometry->coordinates[0];
+
+        $ride
+            ->setLatitude($latitude)
+            ->setLongitude($longitude)
+        ;
 
         $title = $this->generateTitle($ride);
 
@@ -72,15 +85,6 @@ class RideBuilder implements RideBuilderInterface
         } catch (\Exception) {
             return null;
         }
-    }
-
-    /**
-     * Our geojson already provides latitude and longitude, but those values are not placed at the location, but in the
-     * city center to be displayed in the large map. And that’s why we do another lookup here.
-     */
-    protected function lookupLocation(Ride $ride): Ride
-    {
-        return $this->locationCoordLookup->lookupCoordsForRideLocation($ride);
     }
 
     protected function extractCityName(\stdClass $feature): string
