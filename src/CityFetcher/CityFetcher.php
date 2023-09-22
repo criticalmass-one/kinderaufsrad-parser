@@ -75,6 +75,10 @@ class CityFetcher implements CityFetcherInterface
             'Ravensburg / Weingarten' => 'Ravensburg',
             'Wentorf bei Hamburg' => 'Wentorf',
             'Wien Neustadt' => 'Wien',
+            'Dessau-Roßlau' => 'Dessau',
+            'Freiburg im Breisgau' => 'Freiburg',
+            'Recklinghausen-Süd' => 'Recklinghausen',
+            'Stuttgart-Vaihingen' => 'Stuttgart'
         ];
 
         $name = str_replace(['(AU)', '(AU )', '(CH)', '(FR)'], '', $name);
