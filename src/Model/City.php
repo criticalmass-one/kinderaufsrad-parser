@@ -2,31 +2,17 @@
 
 namespace App\Model;
 
-use JMS\Serializer\Annotation as JMS;
+use Symfony\Component\Serializer\Annotation\Ignore;
 
-/**
- * @JMS\ExclusionPolicy("all")
- */
 class City
 {
-    /**
-     * @JMS\Expose()
-     */
     protected ?int $id = null;
 
-    /**
-     * @JMS\Expose()
-     */
     protected ?string $name = null;
 
-    /**
-     * @JMS\Expose()
-     */
+    #[Ignore]
     protected ?CitySlug $mainSlug = null;
 
-    /**
-     * @JMS\Expose()
-     */
     protected string $timezone = 'Europe/Berlin';
 
     public function getName(): ?string

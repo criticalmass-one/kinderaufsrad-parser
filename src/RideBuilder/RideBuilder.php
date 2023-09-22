@@ -3,12 +3,9 @@
 namespace App\RideBuilder;
 
 use App\CityFetcher\CityFetcherInterface;
-use App\LocationCoordLookup\LocationCoordLookupInterface;
 use App\Model\City;
 use App\Model\Ride;
 use Carbon\Carbon;
-use Carbon\CarbonTimeZone;
-use Symfony\Component\DomCrawler\Crawler;
 
 class RideBuilder implements RideBuilderInterface
 {

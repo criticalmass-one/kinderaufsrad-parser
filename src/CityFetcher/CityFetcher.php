@@ -5,17 +5,25 @@ namespace App\CityFetcher;
 use App\Model\City;
 use App\Model\Ride;
 use GuzzleHttp\Client;
-use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Symfony\Component\Serializer\Normalizer\ArrayDenormalizer;
+use Symfony\Component\Serializer\Normalizer\JsonSerializableNormalizer;
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+use Symfony\Component\Serializer\Serializer;
 
 class CityFetcher implements CityFetcherInterface
 {
     protected Client $client;
 
-    public function __construct(protected SerializerInterface $serializer, string $criticalmassHostname)
+    public function __construct(string $criticalmassHostname)
     {
         $this->client = new Client([
             'base_uri' => $criticalmassHostname,
         ]);
+
+        $normalizers = [new JsonSerializableNormalizer(), new ObjectNormalizer(), new ArrayDenormalizer()];
+        $encoders = [new JsonEncoder()];
+        $this->serializer = new Serializer($normalizers, $encoders);
     }
 
     public function getCityForRide(Ride $ride): ?City
@@ -33,7 +41,11 @@ class CityFetcher implements CityFetcherInterface
 
         $response = $this->client->get(sprintf('/api/city?%s', http_build_query($query)));
 
-        $cityList = $this->serializer->deserialize($response->getBody()->getContents(), 'array<App\Model\City>', 'json');
+        if ($response->getBody()->getContents() === '[]') {
+            return null;
+        }
+
+        $cityList = $this->serializer->deserialize($response->getBody()->getContents(), sprintf('%s[]', City::class), 'json');
 
         return array_pop($cityList);
     }

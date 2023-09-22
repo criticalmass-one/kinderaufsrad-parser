@@ -5,7 +5,7 @@ namespace App\RideRetriever;
 use App\Model\Ride;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
-use JMS\Serializer\SerializerInterface;
+use Symfony\Component\Serializer\SerializerInterface;
 
 class RideRetriever implements RideRetrieverInterface
 {
