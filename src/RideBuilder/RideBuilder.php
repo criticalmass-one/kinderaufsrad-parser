@@ -29,7 +29,7 @@ class RideBuilder implements RideBuilderInterface
             $ride->setCity($city);
         }
 
-        if (!isset($feature->properties->Datum) || !isset($feature->properties->Zeit)) {
+        if (!isset($feature->properties->Tag) || !isset($feature->properties->Uhrzeit)) {
             return null;
         }
 
