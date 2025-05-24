@@ -23,6 +23,21 @@ class CityFetcher implements CityFetcherInterface
         return $this->getCityForName($ride->getCityName());
     }
 
+    public function getCityForCoord(float $latitude, float $longitude): ?City
+    {
+        $query = [
+            'centerLatitude' => $latitude,
+            'centerLongitude' => $longitude,
+            'radius' => 50,
+        ];
+
+        $response = $this->client->get(sprintf('/api/city?%s', http_build_query($query)));
+
+        $cityList = $this->serializer->deserialize($response->getBody()->getContents(), 'array<App\Model\City>', 'json');
+
+        return array_pop($cityList);
+    }
+
     public function getCityForName(string $name): ?City
     {
         $name = $this->fixCityName($name);
