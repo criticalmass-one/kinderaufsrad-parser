@@ -32,7 +32,7 @@ services:
     # please note that last definitions always *replace* previous ones
 
     App\LocationCoordLookup\LocationCoordLookupInterface:
-        alias: App\LocationCoordLookup\CachedLocationCoordLookup
+        alias: App\LocationCoordLookup\LocationCoordLookup
 
     App\CityFetcher\CityFetcherInterface:
         alias: App\CityFetcher\CachedCityFetcher
