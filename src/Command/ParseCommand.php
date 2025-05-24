@@ -37,7 +37,7 @@ class ParseCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
 
-        $url = sprintf('https://umap.openstreetmap.fr/de/datalayer/%d/', $input->getArgument('map-identifier'));
+        $url = sprintf('https://umap.openstreetmap.fr/de/datalayer/%s/', $input->getArgument('map-identifier'));
         $content = file_get_contents($url);
 
         $json = json_decode($content, null, 512, JSON_THROW_ON_ERROR);
