@@ -37,7 +37,7 @@ class ParseCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
 
-        $url = sprintf('https://umap.openstreetmap.fr/de/datalayer/%d/', $input->getArgument('map-identifier'));
+        $url = sprintf('https://umap.openstreetmap.fr/de/datalayer/%s/', $input->getArgument('map-identifier'));
         $content = file_get_contents($url);
 
         $json = json_decode($content, null, 512, JSON_THROW_ON_ERROR);
@@ -76,7 +76,7 @@ class ParseCommand extends Command
             $rideList = array_filter($rideList, fn(Ride $ride): bool => $ride->getCity() !== null);
         }
 
-        $io->table(['City', 'Title', 'Slug', 'DateTime', 'Location', 'Latitude', 'Longitude'], array_map(fn(Ride $ride): array => [$ride->getCity() ? $ride->getCity()->getName() : $ride->getCityName() . '?', $ride->getTitle(), $ride->getSlug(), $ride->hasDateTime() ? $ride->getDateTime()->format('Y-m-d H:i') : '', $ride->getLocation(), $ride->getLatitude(), $ride->getLongitude()], $rideList));
+        $io->table(['City', 'Title', 'Description', 'Slug', 'DateTime', 'Location', 'Latitude', 'Longitude'], array_map(fn(Ride $ride): array => [$ride->getCity() ? $ride->getCity()->getName() : $ride->getCityName() . '?', $ride->getTitle(), $ride->getDescription(), $ride->getSlug(), $ride->hasDateTime() ? $ride->getDateTime()->format('Y-m-d H:i') : '', $ride->getLocation(), $ride->getLatitude(), $ride->getLongitude()], $rideList));
 
         if ($io->ask(sprintf('Should I post those %d rides to critical mass api? [y/n]', count($rideList)), 'n') === 'y') {
             $progressBar = $io->createProgressBar(count($rideList));

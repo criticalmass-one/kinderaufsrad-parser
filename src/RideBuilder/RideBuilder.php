@@ -26,11 +26,11 @@ class RideBuilder implements RideBuilderInterface
             $ride->setCity($city);
         }
 
-        if (!isset($feature->properties->Tag) || !isset($feature->properties->Uhrzeit)) {
+        if (!isset($feature->properties->Datum) || !isset($feature->properties->Zeit)) {
             return null;
         }
 
-        $dateTime = $this->generateDateTime($feature->properties->Tag, $feature->properties->Uhrzeit, $city);
+        $dateTime = $this->generateDateTime($feature->properties->Datum, $feature->properties->Zeit, $city);
 
         if (!$dateTime) {
             return null;
