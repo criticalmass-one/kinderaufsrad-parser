@@ -5,9 +5,9 @@ namespace App\Serializer\Denormalizer;
 use App\Model\City;
 use App\Model\CitySlug;
 use Symfony\Component\Serializer\Exception\NotNormalizableValueException;
-use Symfony\Component\Serializer\Normalizer\ContextAwareDenormalizerInterface;
+use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 
-class CityDenormalizer implements ContextAwareDenormalizerInterface
+class CityDenormalizer implements DenormalizerInterface
 {
 
     public function supportsDenormalization($data, $type, $format = null, array $context = []): bool
