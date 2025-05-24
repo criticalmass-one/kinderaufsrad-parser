@@ -18,9 +18,17 @@ class RideBuilder implements RideBuilderInterface
     {
         $ride = new Ride();
 
+        $latitude = $feature->geometry->coordinates[1];
+        $longitude = $feature->geometry->coordinates[0];
+
+        $ride
+            ->setLatitude($latitude)
+            ->setLongitude($longitude)
+        ;
+
         $cityName = $this->extractCityName($feature);
         $ride->setCityName($cityName);
-        $city = $this->cityFetcher->getCityForName($cityName);
+        $city = $this->cityFetcher->getCityForCoord($latitude, $longitude);
 
         if ($city) {
             $ride->setCity($city);
@@ -43,13 +51,10 @@ class RideBuilder implements RideBuilderInterface
             $ride->setLocation($location);
         }
 
-        $latitude = $feature->geometry->coordinates[1];
-        $longitude = $feature->geometry->coordinates[0];
-
-        $ride
-            ->setLatitude($latitude)
-            ->setLongitude($longitude)
-        ;
+        if (isset($feature->properties->Besonderheit)) {
+            $description = $feature->properties->Besonderheit;
+            $ride->setDescription($description);
+        }
 
         $title = $this->generateTitle($ride);
 
