@@ -4,6 +4,7 @@ namespace App\CityFetcher;
 
 use App\Model\City;
 use App\Model\Ride;
+use App\Serializer\Denormalizer\CityDenormalizer;
 use GuzzleHttp\Client;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\ArrayDenormalizer;
@@ -21,7 +22,13 @@ class CityFetcher implements CityFetcherInterface
             'base_uri' => $criticalmassHostname,
         ]);
 
-        $normalizers = [new JsonSerializableNormalizer(), new ObjectNormalizer(), new ArrayDenormalizer()];
+        $normalizers = [
+            new CityDenormalizer(),
+            new JsonSerializableNormalizer(),
+            new ObjectNormalizer(),
+            new ArrayDenormalizer(),
+        ];
+
         $encoders = [new JsonEncoder()];
         $this->serializer = new Serializer($normalizers, $encoders);
     }
@@ -47,19 +54,18 @@ class CityFetcher implements CityFetcherInterface
 
             $rawContent = $response->getBody()->getContents();
 
-        if ($response->getBody()->getContents() === '[]') {
-            return null;
-        }
-
-        $cityList = $this->serializer->deserialize($response->getBody()->getContents(), sprintf('%s[]', City::class), 'json');
-            if ('[]' === $rawContent || empty($rawContent)) {
+            if ($rawContent === '[]') {
                 return null;
             }
 
-            $cityList = $this->serializer->deserialize($rawContent, 'array<App\Model\City>', 'json');
+            dump($rawContent);
+            $cityList = $this->serializer->deserialize($rawContent, 'App\Model\City[]', 'json');
         } catch (\Exception $exception) {
+            dump($exception);
             return null;
         }
+
+        dump($cityList);
 
         return array_pop($cityList);
     }
