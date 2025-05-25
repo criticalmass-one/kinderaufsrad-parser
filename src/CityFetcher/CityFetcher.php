@@ -58,14 +58,11 @@ class CityFetcher implements CityFetcherInterface
                 return null;
             }
 
-            dump($rawContent);
             $cityList = $this->serializer->deserialize($rawContent, 'App\Model\City[]', 'json');
         } catch (\Exception $exception) {
             dump($exception);
             return null;
         }
-
-        dump($cityList);
 
         return array_pop($cityList);
     }
