@@ -2,22 +2,22 @@
 
 namespace App\Model;
 
-use JMS\Serializer\Annotation as JMS;
-
-/**
- * @JMS\ExclusionPolicy("all")
- */
 class CitySlug
 {
-    /**
-     * @JMS\Expose
-     */
     protected int $id;
-
-    /**
-     * @JMS\Expose
-     */
     protected string $slug;
+
+    public function setId(int $id): self
+    {
+        $this->id = $id;
+
+        return $this;
+    }
+
+    public function getId(): int
+    {
+        return $this->id;
+    }
 
     public function getSlug(): string
     {

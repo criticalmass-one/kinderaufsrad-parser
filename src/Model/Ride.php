@@ -2,78 +2,35 @@
 
 namespace App\Model;
 
-use App\Model\City;
 use Carbon\Carbon;
-use JMS\Serializer\Annotation as JMS;
+use Symfony\Component\Serializer\Attribute\Ignore;
 
-/**
- * @JMS\ExclusionPolicy("all")
- */
 class Ride
 {
-    /**
-     * @JMS\Expose
-     */
     protected ?int $id = null;
-
+    
     protected ?string $cityName = null;
 
-    /**
-     * @JMS\Expose
-     */
     protected ?City $city = null;
 
-    /**
-     * @JMS\Expose
-     */
     protected ?string $slug = null;
 
-    /**
-     * @JMS\Expose
-     */
     protected ?string $title = null;
 
-    /**
-     * @JMS\Expose
-     */
     protected ?string $description = null;
 
-    /**
-     * @JMS\Expose
-     * @JMS\Type("Carbon<'U'>")
-     */
     protected ?Carbon $dateTime = null;
 
-    /**
-     * @JMS\Expose
-     */
     protected ?string $location = null;
 
-    /**
-     * @JMS\Expose
-     */
     protected ?float $latitude = null;
 
-    /**
-     * @JMS\Expose
-     */
     protected ?float $longitude = null;
 
-    /**
-     * @JMS\Expose
-     * @JMS\Type("Carbon<'U'>")
-     */
     protected ?Carbon $createdAt = null;
 
-    /**
-     * @JMS\Expose
-     * @JMS\Type("Carbon<'U'>")
-     */
     protected ?Carbon $updatedAt = null;
 
-    /**
-     * @JMS\Expose
-     */
     protected ?string $rideType = null;
 
     public function __construct()

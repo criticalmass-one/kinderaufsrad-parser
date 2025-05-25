@@ -3,12 +3,9 @@
 namespace App\RideBuilder;
 
 use App\CityFetcher\CityFetcherInterface;
-use App\LocationCoordLookup\LocationCoordLookupInterface;
 use App\Model\City;
 use App\Model\Ride;
 use Carbon\Carbon;
-use Carbon\CarbonTimeZone;
-use Symfony\Component\DomCrawler\Crawler;
 
 class RideBuilder implements RideBuilderInterface
 {
@@ -21,6 +18,14 @@ class RideBuilder implements RideBuilderInterface
     {
         $ride = new Ride();
 
+        $latitude = $feature->geometry->coordinates[1];
+        $longitude = $feature->geometry->coordinates[0];
+
+        $ride
+            ->setLatitude($latitude)
+            ->setLongitude($longitude)
+        ;
+
         $cityName = $this->extractCityName($feature);
         $ride->setCityName($cityName);
         $city = $this->cityFetcher->getCityForName($cityName);
@@ -29,11 +34,11 @@ class RideBuilder implements RideBuilderInterface
             $ride->setCity($city);
         }
 
-        if (!isset($feature->properties->Tag) || !isset($feature->properties->Uhrzeit)) {
+        if (!isset($feature->properties->Datum) || !isset($feature->properties->Zeit)) {
             return null;
         }
 
-        $dateTime = $this->generateDateTime($feature->properties->Tag, $feature->properties->Uhrzeit, $city);
+        $dateTime = $this->generateDateTime($feature->properties->Datum, $feature->properties->Zeit, $city);
 
         if (!$dateTime) {
             return null;
@@ -46,13 +51,10 @@ class RideBuilder implements RideBuilderInterface
             $ride->setLocation($location);
         }
 
-        $latitude = $feature->geometry->coordinates[1];
-        $longitude = $feature->geometry->coordinates[0];
-
-        $ride
-            ->setLatitude($latitude)
-            ->setLongitude($longitude)
-        ;
+        if (isset($feature->properties->Besonderheit)) {
+            $description = $feature->properties->Besonderheit;
+            $ride->setDescription($description);
+        }
 
         $title = $this->generateTitle($ride);
 
