@@ -32,4 +32,11 @@ class RideNormalizer implements NormalizerInterface
             'ride_type' => $ride->getRideType(),
         ];
     }
+
+    public function getSupportedTypes(?string $format): array
+    {
+        return [
+            Ride::class => true,
+        ];
+    }
 }

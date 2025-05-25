@@ -43,4 +43,11 @@ class CityDenormalizer implements DenormalizerInterface
 
         return $city;
     }
+
+    public function getSupportedTypes(?string $format): array
+    {
+        return [
+            City::class => true,
+        ];
+    }
 }
