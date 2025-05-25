@@ -3,7 +3,6 @@
 namespace App\CityFetcher;
 
 use App\Model\City;
-use JMS\Serializer\SerializerInterface;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 
 class CachedCityFetcher extends CityFetcher
@@ -12,11 +11,11 @@ class CachedCityFetcher extends CityFetcher
 
     protected FilesystemAdapter $cache;
 
-    public function __construct(SerializerInterface $serializer, string $criticalmassHostname)
+    public function __construct(string $criticalmassHostname)
     {
         $this->cache = new FilesystemAdapter('kidicalmass-city', self::CACHE_TTL);
 
-        parent::__construct($serializer, $criticalmassHostname);
+        parent::__construct($criticalmassHostname);
     }
 
     public function getCityForName(string $name): ?City
@@ -35,7 +34,11 @@ class CachedCityFetcher extends CityFetcher
             return $response->getBody()->getContents();
         });
 
-        $cityList = $this->serializer->deserialize($cityJson, 'array<App\Model\City>', 'json');
+        if ($cityJson === '[]') {
+            return null;
+        }
+
+        $cityList = $this->serializer->deserialize($cityJson, sprintf('%s[]', City::class), 'json');
 
         return array_pop($cityList);
     }

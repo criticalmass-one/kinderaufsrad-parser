@@ -92,7 +92,8 @@ class ParseCommand extends Command
                 } else {
                     try {
                         $this->ridePusher->putRide($ride);
-                    } catch (\Exception) {
+                    } catch (\Exception $exception) {
+                        dd($exception);
                         $io->error(sprintf('Ride %s (%s) does already exist', $ride->getTitle(), $ride->getSlug()));
                     }
                 }

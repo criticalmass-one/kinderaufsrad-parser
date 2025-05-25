@@ -3,20 +3,39 @@
 namespace App\RideRetriever;
 
 use App\Model\Ride;
+use App\Serializer\Denormalizer\CarbonDenormalizer;
+use App\Serializer\Denormalizer\CityDenormalizer;
+use App\Serializer\Denormalizer\RideDenormalizer;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
-use JMS\Serializer\SerializerInterface;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Symfony\Component\Serializer\Normalizer\ArrayDenormalizer;
+use Symfony\Component\Serializer\Normalizer\JsonSerializableNormalizer;
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+use Symfony\Component\Serializer\Serializer;
+use Symfony\Component\Serializer\SerializerInterface;
 
 class RideRetriever implements RideRetrieverInterface
 {
     protected Client $client;
+    protected SerializerInterface $serializer;
 
-    public function __construct(protected SerializerInterface $serializer, string $criticalmassHostname)
+    public function __construct(string $criticalmassHostname)
     {
         $this->client = new Client([
             'base_uri' => $criticalmassHostname,
             'verify' => false,
         ]);
+
+        $normalizers = [
+            new RideDenormalizer(new CityDenormalizer()),
+            new JsonSerializableNormalizer(),
+            new ObjectNormalizer(),
+            new ArrayDenormalizer(),
+        ];
+
+        $encoders = [new JsonEncoder()];
+        $this->serializer = new Serializer($normalizers, $encoders);
     }
 
     public function doesRideExist(Ride $ride): bool
@@ -55,7 +74,9 @@ class RideRetriever implements RideRetrieverInterface
             return null;
         }
 
-        $ride = $this->serializer->deserialize($response->getBody()->getContents(), Ride::class, 'json');
+        $rawContent = $response->getBody()->getContents();
+
+        $ride = $this->serializer->deserialize($rawContent, Ride::class, 'json');
 
         return $ride;
     }

@@ -3,12 +3,9 @@
 namespace App\RideBuilder;
 
 use App\CityFetcher\CityFetcherInterface;
-use App\LocationCoordLookup\LocationCoordLookupInterface;
 use App\Model\City;
 use App\Model\Ride;
 use Carbon\Carbon;
-use Carbon\CarbonTimeZone;
-use Symfony\Component\DomCrawler\Crawler;
 
 class RideBuilder implements RideBuilderInterface
 {
@@ -20,6 +17,14 @@ class RideBuilder implements RideBuilderInterface
     public function buildFromFeature(\stdClass $feature): ?Ride
     {
         $ride = new Ride();
+
+        $latitude = $feature->geometry->coordinates[1];
+        $longitude = $feature->geometry->coordinates[0];
+
+        $ride
+            ->setLatitude($latitude)
+            ->setLongitude($longitude)
+        ;
 
         $cityName = $this->extractCityName($feature);
         $ride->setCityName($cityName);
@@ -46,13 +51,10 @@ class RideBuilder implements RideBuilderInterface
             $ride->setLocation($location);
         }
 
-        $latitude = $feature->geometry->coordinates[1];
-        $longitude = $feature->geometry->coordinates[0];
-
-        $ride
-            ->setLatitude($latitude)
-            ->setLongitude($longitude)
-        ;
+        if (isset($feature->properties->Besonderheit)) {
+            $description = $feature->properties->Besonderheit;
+            $ride->setDescription($description);
+        }
 
         $title = $this->generateTitle($ride);
 

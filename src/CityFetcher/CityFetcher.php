@@ -4,18 +4,33 @@ namespace App\CityFetcher;
 
 use App\Model\City;
 use App\Model\Ride;
+use App\Serializer\Denormalizer\CityDenormalizer;
 use GuzzleHttp\Client;
-use JMS\Serializer\SerializerInterface;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Symfony\Component\Serializer\Normalizer\ArrayDenormalizer;
+use Symfony\Component\Serializer\Normalizer\JsonSerializableNormalizer;
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+use Symfony\Component\Serializer\Serializer;
 
 class CityFetcher implements CityFetcherInterface
 {
     protected Client $client;
 
-    public function __construct(protected SerializerInterface $serializer, string $criticalmassHostname)
+    public function __construct(string $criticalmassHostname)
     {
         $this->client = new Client([
             'base_uri' => $criticalmassHostname,
         ]);
+
+        $normalizers = [
+            new CityDenormalizer(),
+            new JsonSerializableNormalizer(),
+            new ObjectNormalizer(),
+            new ArrayDenormalizer(),
+        ];
+
+        $encoders = [new JsonEncoder()];
+        $this->serializer = new Serializer($normalizers, $encoders);
     }
 
     public function getCityForRide(Ride $ride): ?City
@@ -31,9 +46,23 @@ class CityFetcher implements CityFetcherInterface
             'name' => $name,
         ];
 
-        $response = $this->client->get(sprintf('/api/city?%s', http_build_query($query)));
+        try {
 
-        $cityList = $this->serializer->deserialize($response->getBody()->getContents(), 'array<App\Model\City>', 'json');
+            $queryUrl = sprintf('/api/city?%s', http_build_query($query));
+
+            $response = $this->client->get($queryUrl);
+
+            $rawContent = $response->getBody()->getContents();
+
+            if ($rawContent === '[]') {
+                return null;
+            }
+
+            $cityList = $this->serializer->deserialize($rawContent, 'App\Model\City[]', 'json');
+        } catch (\Exception $exception) {
+            dump($exception);
+            return null;
+        }
 
         return array_pop($cityList);
     }
@@ -75,10 +104,17 @@ class CityFetcher implements CityFetcherInterface
             'Dessau-Roßlau' => 'Dessau',
             'Freiburg im Breisgau' => 'Freiburg',
             'Recklinghausen-Süd' => 'Recklinghausen',
-            'Stuttgart-Vaihingen' => 'Stuttgart'
+            'Stuttgart-Vaihingen' => 'Stuttgart',
+            'Wiener Neustadt ' => 'Wien',
+            'Wentorf bei Hamburg' => 'Wentorf',
+            'Recklinghausen-Süd' => 'Recklinghausen',
+            'Neumarkt i.d.Opf.' => 'Neumarkt in der Oberpfalz',
+            'Amt Schrevenborn' => 'Schrevenborn',
+            'Montevideo (Uruguay)' => 'Montevideo',
+            'Kehl am Rhein / Strasbourg (FR)' => 'Kehl am Rhein',
         ];
 
-        $name = str_replace(['(AU)', '(AU )', '(CH)', '(FR)'], '', $name);
+        $name = str_replace(['(AU)', '(AU )', '(CH)', '(FR)', '(USA)', '(UK)', '(PT)', '(LU)', '(USA)'], '', $name);
 
         if (array_key_exists($name, $mapping)) {
             $name = $mapping[$name];

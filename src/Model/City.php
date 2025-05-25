@@ -2,32 +2,26 @@
 
 namespace App\Model;
 
-use JMS\Serializer\Annotation as JMS;
-
-/**
- * @JMS\ExclusionPolicy("all")
- */
 class City
 {
-    /**
-     * @JMS\Expose()
-     */
     protected ?int $id = null;
-
-    /**
-     * @JMS\Expose()
-     */
     protected ?string $name = null;
-
-    /**
-     * @JMS\Expose()
-     */
     protected ?CitySlug $mainSlug = null;
-
-    /**
-     * @JMS\Expose()
-     */
     protected string $timezone = 'Europe/Berlin';
+    protected float $latitude;
+    protected float $longitude;
+
+    public function setId(int $id): self
+    {
+        $this->id = $id;
+
+        return $this;
+    }
+
+    public function getId(): int
+    {
+        return $this->id;
+    }
 
     public function getName(): ?string
     {
@@ -63,5 +57,29 @@ class City
     public function getTimezone(): ?string
     {
         return $this->timezone;
+    }
+
+    public function setLatitude(float $latitude): self
+    {
+        $this->latitude = $latitude;
+
+        return $this;
+    }
+
+    public function getLatitude(): ?float
+    {
+        return $this->latitude;
+    }
+
+    public function setLongitude(float $longitude): self
+    {
+        $this->longitude = $longitude;
+
+        return $this;
+    }
+
+    public function getLongitude(): ?float
+    {
+        return $this->longitude;
     }
 }
