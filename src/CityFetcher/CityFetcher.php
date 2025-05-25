@@ -53,7 +53,9 @@ class CityFetcher implements CityFetcherInterface
             'radius' => 50,
         ];
 
-        $response = $this->client->get(sprintf('/api/city?%s', http_build_query($query)));
+        $url = sprintf('/api/city?%s', http_build_query($query));
+
+        $response = $this->client->get($url);
 
         return $this->serializer->deserialize($response->getBody()->getContents(), 'App\Model\City[]', 'json');
     }

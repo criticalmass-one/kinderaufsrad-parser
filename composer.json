@@ -5,6 +5,7 @@
         "php": "^8.4",
         "ext-ctype": "*",
         "ext-iconv": "*",
+        "cocur/slugify": "^4.6",
         "guzzlehttp/guzzle": "^7.0",
         "maxh/php-nominatim": "^2.2",
         "nesbot/carbon": "^2.39",

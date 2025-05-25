@@ -34,7 +34,7 @@ class RideBuilder implements RideBuilderInterface
         $city = null;
 
         foreach ($cityList as $cityListItem) {
-            if (strpos($cityListItem->getName(), $cityName) === 0) {
+            if (strpos($cityName, $cityListItem->getName()) !== false) {
                 $city = $cityListItem;
                 break;
             }
