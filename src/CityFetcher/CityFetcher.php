@@ -40,6 +40,13 @@ class CityFetcher implements CityFetcherInterface
 
     public function getCityForCoord(float $latitude, float $longitude): ?City
     {
+        $cityList = $this->getCityListForCoord($latitude, $longitude);
+
+        return array_pop($cityList);
+    }
+
+    public function getCityListForCoord(float $latitude, float $longitude): array
+    {
         $query = [
             'centerLatitude' => $latitude,
             'centerLongitude' => $longitude,
@@ -48,9 +55,7 @@ class CityFetcher implements CityFetcherInterface
 
         $response = $this->client->get(sprintf('/api/city?%s', http_build_query($query)));
 
-        $cityList = $this->serializer->deserialize($response->getBody()->getContents(), 'array<App\Model\City>', 'json');
-
-        return array_pop($cityList);
+        return $this->serializer->deserialize($response->getBody()->getContents(), 'App\Model\City[]', 'json');
     }
 
     public function getCityForName(string $name): ?City
