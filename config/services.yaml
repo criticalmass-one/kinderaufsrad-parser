@@ -35,8 +35,8 @@ services:
         alias: App\LocationCoordLookup\LocationCoordLookup
 
     App\CityFetcher\CityFetcherInterface:
-        #alias: App\CityFetcher\CachedCityFetcher
-        alias: App\CityFetcher\CityFetcher
+        alias: App\CityFetcher\CachedCityFetcher
+        #alias: App\CityFetcher\CityFetcher
 
     Rosamarsky\JMS\CarbonHandler:
         tags:

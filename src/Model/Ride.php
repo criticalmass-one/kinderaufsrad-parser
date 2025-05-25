@@ -3,11 +3,12 @@
 namespace App\Model;
 
 use Carbon\Carbon;
+use Symfony\Component\Serializer\Attribute\Ignore;
 
 class Ride
 {
     protected ?int $id = null;
-
+    
     protected ?string $cityName = null;
 
     protected ?City $city = null;
