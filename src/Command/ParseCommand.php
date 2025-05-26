@@ -32,6 +32,7 @@ class ParseCommand extends Command
             ->addOption('existing-city-only', null, InputOption::VALUE_NONE, 'Only list rides in existing cities')
             ->addOption('non-existing-city-only', null, InputOption::VALUE_NONE, 'Only list rides in not existing cities')
             ->addOption('update', null, InputOption::VALUE_NONE, 'Update rides')
+            ->addOption('city-filter', 'cf', InputOption::VALUE_REQUIRED, 'Filter for city name')
         ;
     }
 
@@ -76,6 +77,12 @@ class ParseCommand extends Command
 
         if ($input->getOption('existing-city-only')) {
             $rideList = array_filter($rideList, fn(Ride $ride): bool => $ride->getCity() !== null);
+        }
+
+        if ($input->getOption('city-filter')) {
+            $cityName = $input->getOption('city-filter');
+
+            $rideList = array_filter($rideList, fn(Ride $ride): bool => $ride->getCity()->getName() === $cityName);
         }
 
         $io->table(['City', 'Title', 'Description', 'Slug', 'DateTime', 'Location', 'Latitude', 'Longitude'], array_map(fn(Ride $ride): array => [$ride->getCity() ? $ride->getCity()->getName() : $ride->getCityName() . '?', $ride->getTitle(), $ride->getDescription(), $ride->getSlug(), $ride->hasDateTime() ? $ride->getDateTime()->format('Y-m-d H:i') : '', $ride->getLocation(), $ride->getLatitude(), $ride->getLongitude()], $rideList));
