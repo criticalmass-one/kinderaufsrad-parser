@@ -28,7 +28,17 @@ class RideBuilder implements RideBuilderInterface
 
         $cityName = $this->extractCityName($feature);
         $ride->setCityName($cityName);
-        $city = $this->cityFetcher->getCityForName($cityName);
+
+        $cityList = $this->cityFetcher->getCityListForCoord($latitude, $longitude);
+
+        $city = null;
+
+        foreach ($cityList as $cityListItem) {
+            if (strpos($cityName, $cityListItem->getName()) !== false) {
+                $city = $cityListItem;
+                break;
+            }
+        }
 
         if ($city) {
             $ride->setCity($city);

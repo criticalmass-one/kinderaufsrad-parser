@@ -6,6 +6,7 @@ use App\Model\Ride;
 use App\RideBuilder\RideBuilderInterface;
 use App\RidePusher\RidePusherInterface;
 use App\RideRetriever\RideRetrieverInterface;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -13,11 +14,12 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
+#[AsCommand(
+    name: 'kidicalmass:parse',
+    description: 'Fetch kidical mass rides from kinderaufsrad.org',
+)]
 class ParseCommand extends Command
 {
-    protected static $defaultName = 'kidicalmass:parse';
-    protected static $defaultDescription = 'Fetch kidical mass rides from kinderaufsrad.org';
-
     public function __construct(protected RideBuilderInterface $rideBuilder, protected RideRetrieverInterface $rideRetriever, protected RidePusherInterface $ridePusher, string $name = null)
     {
         parent::__construct($name);

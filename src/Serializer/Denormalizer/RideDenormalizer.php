@@ -14,11 +14,6 @@ class RideDenormalizer implements DenormalizerInterface
         private CityDenormalizer $cityDenormalizer
     ) {}
 
-    public function supportsDenormalization($data, $type, $format = null, array $context = []): bool
-    {
-        return $type === Ride::class;
-    }
-
     public function denormalize($data, $type, $format = null, array $context = []): Ride
     {
         if (!is_array($data)) {
@@ -73,5 +68,17 @@ class RideDenormalizer implements DenormalizerInterface
         }
 
         throw new NotNormalizableValueException('Invalid Carbon input');
+    }
+
+    public function getSupportedTypes(?string $format): array
+    {
+        return [
+            Ride::class => true
+        ];
+    }
+
+    public function supportsDenormalization(mixed $data, string $type, ?string $format = null, array $context = []): bool
+    {
+        return $type === Ride::class;
     }
 }

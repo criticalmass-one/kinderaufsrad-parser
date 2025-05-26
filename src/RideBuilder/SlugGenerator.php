@@ -3,6 +3,7 @@
 namespace App\RideBuilder;
 
 use App\Model\Ride;
+use Cocur\Slugify\Slugify;
 
 class SlugGenerator implements SlugGeneratorInterface
 {
@@ -12,11 +13,12 @@ class SlugGenerator implements SlugGeneratorInterface
             return $ride;
         }
 
-        $citySlug = $ride->getCity()->getMainSlug()->getSlug();
+        $slugifiedCityName = (new Slugify())->slugify($ride->getCityName());
+
         $monthName = $ride->getDateTime()->locale('de')->monthName;
         $year = $ride->getDateTime()->format('Y');
 
-        $slug = sprintf('kidical-mass-%s-%s-%d', $citySlug, $monthName, $year);
+        $slug = sprintf('kidical-mass-%s-%s-%d', $slugifiedCityName, $monthName, $year);
 
         $slug = strtolower($slug);
 
