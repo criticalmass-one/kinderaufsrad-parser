@@ -9,7 +9,7 @@ class SlugGenerator implements SlugGeneratorInterface
 {
     public function generateForRide(Ride $ride): Ride
     {
-        if (!$ride->getCity() || !$ride->getCity()->getMainSlug() || !$ride->getDateTime()) {
+        if (!$ride->getCity() || !$ride->getCity()->getMainSlug() || !$ride->getDateTime() || !$ride->getCityName()) {
             return $ride;
         }
 

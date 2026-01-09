@@ -20,25 +20,67 @@ class RideDenormalizer implements DenormalizerInterface
             throw new NotNormalizableValueException('Expected array data for Ride');
         }
 
-        $ride = (new Ride())
-            ->setTitle($data['title'] ?? null)
-            ->setSlug($data['slug'] ?? null)
-            ->setDescription($data['description'] ?? null)
-            ->setLocation($data['location'] ?? null)
-            ->setLatitude($data['latitude'] ?? null)
-            ->setLongitude($data['longitude'] ?? null)
-            ->setRideType($data['ride_type'] ?? null);
+        $ride = new Ride();
 
-        if (isset($data['date_time'])) {
-            $ride->setDateTime($this->denormalizeCarbon($data['date_time']));
+        if (array_key_exists('title', $data) && $data['title'] !== null) {
+            $ride->setTitle($data['title']);
         }
 
-        if (isset($data['created_at'])) {
-            $ride->setCreatedAt($this->denormalizeCarbon($data['created_at']));
+        if (array_key_exists('slug', $data) && $data['slug'] !== null) {
+            $ride->setSlug($data['slug']);
         }
 
-        if (isset($data['updated_at'])) {
-            $ride->setUpdatedAt($this->denormalizeCarbon($data['updated_at']));
+        if (array_key_exists('description', $data) && $data['description'] !== null) {
+            $ride->setDescription($data['description']);
+        }
+
+        if (array_key_exists('location', $data) && $data['location'] !== null) {
+            $ride->setLocation($data['location']);
+        }
+
+        if (array_key_exists('latitude', $data)) {
+            $ride->setLatitude($data['latitude']);
+        }
+
+        if (array_key_exists('longitude', $data)) {
+            $ride->setLongitude($data['longitude']);
+        }
+
+        if (array_key_exists('ride_type', $data) && $data['ride_type'] !== null) {
+            $ride->setRideType($data['ride_type']);
+        }
+
+        if (array_key_exists('date_time', $data)) {
+            $value = $data['date_time'];
+            if (!is_int($value) && !is_string($value) && $value !== null) {
+                throw new NotNormalizableValueException('Invalid Carbon input');
+            }
+            $dateTime = $this->denormalizeCarbon($value);
+            if ($dateTime !== null) {
+                $ride->setDateTime($dateTime);
+            }
+        }
+
+        if (array_key_exists('created_at', $data)) {
+            $value = $data['created_at'];
+            if (!is_int($value) && !is_string($value) && $value !== null) {
+                throw new NotNormalizableValueException('Invalid Carbon input');
+            }
+            $createdAt = $this->denormalizeCarbon($value);
+            if ($createdAt !== null) {
+                $ride->setCreatedAt($createdAt);
+            }
+        }
+
+        if (array_key_exists('updated_at', $data)) {
+            $value = $data['updated_at'];
+            if (!is_int($value) && !is_string($value) && $value !== null) {
+                throw new NotNormalizableValueException('Invalid Carbon input');
+            }
+            $updatedAt = $this->denormalizeCarbon($value);
+            if ($updatedAt !== null) {
+                $ride->setUpdatedAt($updatedAt);
+            }
         }
 
         if (isset($data['city'])) {
