@@ -20,11 +20,9 @@ final class CityTest extends TestCase
     }
 
     #[Test]
-    public function getIdOnFreshCityThrowsBecauseReturnTypeIsNotNullable(): void
+    public function freshCityHasNoId(): void
     {
-        $this->expectException(\TypeError::class);
-
-        (new City())->getId();
+        self::assertNull((new City())->getId());
     }
 
     #[Test]
