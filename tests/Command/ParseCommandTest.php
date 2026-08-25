@@ -7,7 +7,6 @@ use App\RideBuilder\RideBuilder;
 use App\RideBuilder\SlugGenerator;
 use App\Tests\Double\InMemoryCityFetcher;
 use App\Tests\Double\InMemoryRideRetriever;
-use App\Tests\Double\KnownBugTrait;
 use App\Tests\Double\RecordingRidePusher;
 use App\Tests\Double\UMapResponses;
 use App\Tests\Fixture\Fixtures;
@@ -24,7 +23,6 @@ use Symfony\Component\Console\Tester\CommandTester;
  */
 final class ParseCommandTest extends TestCase
 {
-    use KnownBugTrait;
 
     private const string MAP_ID = 'abc123';
     private const string MAP_URL = 'https://umap.openstreetmap.fr/de/datalayer/abc123/';

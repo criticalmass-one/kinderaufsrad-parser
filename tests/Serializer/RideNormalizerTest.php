@@ -5,7 +5,6 @@ namespace App\Tests\Serializer;
 use App\Model\City;
 use App\Model\Ride;
 use App\Serializer\Normalizer\RideNormalizer;
-use App\Tests\Double\KnownBugTrait;
 use App\Tests\Fixture\Fixtures;
 use Carbon\Carbon;
 use PHPUnit\Framework\Attributes\Test;
@@ -15,8 +14,6 @@ use Symfony\Component\Serializer\Serializer;
 
 final class RideNormalizerTest extends TestCase
 {
-    use KnownBugTrait;
-
     private RideNormalizer $normalizer;
 
     protected function setUp(): void
@@ -99,23 +96,13 @@ final class RideNormalizerTest extends TestCase
     }
 
     /**
-     * Documents known bug #6: the payload carries ride_type as the string "KIDICAL_MASS",
-     * which the criticalmass.in API answers with HTTP 500. Only null/omitted is accepted.
+     * criticalmass.in deserializes ride_type through BackedEnumNormalizer into RideTypeEnum
+     * (since 2026-05-11), so the value must be the enum's backing string "KIDICAL_MASS".
      */
     #[Test]
-    public function rideTypeIsSentAsPlainString(): void
+    public function rideTypeIsSentAsEnumValue(): void
     {
         self::assertSame('KIDICAL_MASS', $this->normalizer->normalize(Fixtures::ride())['ride_type']);
-    }
-
-    #[Test]
-    public function knownBugRideTypeMustNotBeSentToTheApi(): void
-    {
-        $this->assertKnownBugStillPresent('CLAUDE.md known bug #6, RideNormalizer.php:32', function (): void {
-            $data = $this->normalizer->normalize(Fixtures::ride());
-
-            self::assertTrue(!array_key_exists('ride_type', $data) || $data['ride_type'] === null, 'ride_type must be null or omitted');
-        });
     }
 
     #[Test]
