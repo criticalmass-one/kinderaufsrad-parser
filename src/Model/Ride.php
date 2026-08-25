@@ -163,26 +163,26 @@ class Ride
         return $this->description;
     }
 
-    public function getCreatedAt(): \DateTime
+    public function getCreatedAt(): ?Carbon
     {
         return $this->createdAt;
     }
 
-    public function setCreatedAt(\DateTime $createdAt): self
+    public function setCreatedAt(?\DateTimeInterface $createdAt = null): self
     {
-        $this->createdAt = $createdAt;
+        $this->createdAt = $createdAt !== null ? Carbon::instance($createdAt) : null;
 
         return $this;
     }
 
-    public function getUpdatedAt(): ?\DateTime
+    public function getUpdatedAt(): ?Carbon
     {
         return $this->updatedAt;
     }
 
-    public function setUpdatedAt(\DateTime $updatedAt): self
+    public function setUpdatedAt(?\DateTimeInterface $updatedAt = null): self
     {
-        $this->updatedAt = $updatedAt;
+        $this->updatedAt = $updatedAt !== null ? Carbon::instance($updatedAt) : null;
 
         return $this;
     }

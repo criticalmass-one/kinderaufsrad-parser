@@ -93,24 +93,25 @@ final class RideTest extends TestCase
         self::assertSame(1767225600, $ride->getCreatedAt()->getTimestamp());
     }
 
-    /**
-     * setCreatedAt()/setUpdatedAt() are typed \DateTime, but the backing properties are ?Carbon:
-     * passing a plain \DateTime is accepted by the signature and then fails on assignment.
-     */
     #[Test]
-    public function createdAtRejectsPlainDateTimeDespiteItsSignature(): void
+    public function createdAtAndUpdatedAtAcceptAnyDateTimeAndStoreCarbon(): void
     {
-        $this->expectException(\TypeError::class);
-        $this->expectExceptionMessageMatches('/Cannot assign DateTime to property/');
+        $ride = (new Ride())
+            ->setCreatedAt(new \DateTime('2026-01-01 00:00:00', new \DateTimeZone('UTC')))
+            ->setUpdatedAt(new \DateTimeImmutable('2026-01-02 00:00:00', new \DateTimeZone('UTC')));
 
-        (new Ride())->setCreatedAt(new \DateTime('2026-01-01 00:00:00', new \DateTimeZone('UTC')));
+        self::assertInstanceOf(Carbon::class, $ride->getCreatedAt());
+        self::assertInstanceOf(Carbon::class, $ride->getUpdatedAt());
+        self::assertSame(1767225600, $ride->getCreatedAt()->getTimestamp());
+        self::assertSame(1767312000, $ride->getUpdatedAt()->getTimestamp());
     }
 
     #[Test]
-    public function updatedAtRejectsPlainDateTimeDespiteItsSignature(): void
+    public function createdAtAndUpdatedAtCanBeCleared(): void
     {
-        $this->expectException(\TypeError::class);
+        $ride = (new Ride())->setCreatedAt(null)->setUpdatedAt(null);
 
-        (new Ride())->setUpdatedAt(new \DateTime('2026-01-01 00:00:00', new \DateTimeZone('UTC')));
+        self::assertNull($ride->getCreatedAt());
+        self::assertNull($ride->getUpdatedAt());
     }
 }
