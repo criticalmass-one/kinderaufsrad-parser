@@ -11,10 +11,12 @@ use Symfony\Component\Serializer\Normalizer\ArrayDenormalizer;
 use Symfony\Component\Serializer\Normalizer\JsonSerializableNormalizer;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
+use Symfony\Component\Serializer\SerializerInterface;
 
 class CityFetcher implements CityFetcherInterface
 {
     protected Client $client;
+    protected SerializerInterface $serializer;
 
     public function __construct(string $criticalmassHostname)
     {
