@@ -21,9 +21,8 @@ use Symfony\Component\Console\Command\LazyCommand;
  * Boots the real container (test env) to make sure autowiring of the interfaces and the
  * command registration still work. No HTTP call is made: services are only constructed.
  *
- * Constructing the real CityFetcher triggers a PHP deprecation (dynamic property
- * CityFetcher::$serializer); it is captured here so it is asserted instead of failing
- * the run under SYMFONY_DEPRECATIONS_HELPER=max.
+ * PHP deprecations raised while constructing services are captured so that they are
+ * asserted explicitly instead of failing the run under SYMFONY_DEPRECATIONS_HELPER=max.
  */
 final class ServiceWiringTest extends KernelTestCase
 {
@@ -117,15 +116,20 @@ final class ServiceWiringTest extends KernelTestCase
         }
     }
 
-    /**
-     * Bug: CityFetcher assigns $this->serializer without declaring the property; PHP >= 8.2
-     * reports this as deprecated (and PHP 9 will make it an error).
-     */
     #[Test]
-    public function constructingTheRealCityFetcherTriggersDynamicPropertyDeprecation(): void
+    public function constructingTheRealServicesTriggersNoDeprecation(): void
     {
-        [, $deprecations] = self::capturingDeprecations(static fn(): CityFetcher => new CityFetcher('https://cm.test/'));
+        self::bootKernel();
+        $container = self::getContainer();
 
-        self::assertSame(['Creation of dynamic property App\CityFetcher\CityFetcher::$serializer is deprecated'], $deprecations);
+        [, $deprecations] = self::capturingDeprecations(static fn(): array => [
+            new CityFetcher('https://cm.test/'),
+            $container->get(CityFetcherInterface::class),
+            $container->get(RideBuilderInterface::class),
+            $container->get(RidePusherInterface::class),
+            $container->get(RideRetrieverInterface::class),
+        ]);
+
+        self::assertSame([], $deprecations);
     }
 }

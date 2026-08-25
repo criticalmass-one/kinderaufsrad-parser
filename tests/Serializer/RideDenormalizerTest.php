@@ -7,7 +7,6 @@ use App\Model\Ride;
 use App\Serializer\Denormalizer\CityDenormalizer;
 use App\Serializer\Denormalizer\RideDenormalizer;
 use Carbon\Carbon;
-use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Serializer\Exception\NotNormalizableValueException;
@@ -130,41 +129,33 @@ final class RideDenormalizerTest extends TestCase
         self::assertNull($ride->getLongitude());
     }
 
-    /** @return iterable<string, array{0: string}> */
-    public static function nonNullableFieldProvider(): iterable
+    #[Test]
+    public function missingDescriptionAndRideTypeBecomeNull(): void
     {
-        yield 'description' => ['description'];
-        yield 'ride_type' => ['ride_type'];
+        $data = self::apiData();
+        unset($data['description'], $data['ride_type']);
+
+        $ride = $this->denormalizer->denormalize($data, Ride::class);
+
+        self::assertNull($ride->getDescription());
+        self::assertNull($ride->getRideType());
     }
 
     /**
-     * Bug: Ride::setDescription()/setRideType() are declared with non-nullable string
-     * parameters, but the denormalizer passes `$data[...] ?? null`. Any API response
-     * without these fields (or with null — the API returns ride_type null for rides
-     * whose type is unset) blows up with a TypeError instead of being denormalized.
+     * The API returns ride_type null for rides whose type is unset (and description may be
+     * null as well); both must denormalize instead of blowing up with a TypeError.
      */
     #[Test]
-    #[DataProvider('nonNullableFieldProvider')]
-    public function missingNonNullableFieldCausesTypeError(string $field): void
+    public function nullDescriptionAndRideTypeAreAccepted(): void
     {
         $data = self::apiData();
-        unset($data[$field]);
+        $data['description'] = null;
+        $data['ride_type'] = null;
 
-        $this->expectException(\TypeError::class);
+        $ride = $this->denormalizer->denormalize($data, Ride::class);
 
-        $this->denormalizer->denormalize($data, Ride::class);
-    }
-
-    #[Test]
-    #[DataProvider('nonNullableFieldProvider')]
-    public function nullNonNullableFieldCausesTypeError(string $field): void
-    {
-        $data = self::apiData();
-        $data[$field] = null;
-
-        $this->expectException(\TypeError::class);
-
-        $this->denormalizer->denormalize($data, Ride::class);
+        self::assertNull($ride->getDescription());
+        self::assertNull($ride->getRideType());
     }
 
     #[Test]

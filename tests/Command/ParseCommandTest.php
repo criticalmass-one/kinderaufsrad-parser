@@ -7,7 +7,6 @@ use App\RideBuilder\RideBuilder;
 use App\RideBuilder\SlugGenerator;
 use App\Tests\Double\InMemoryCityFetcher;
 use App\Tests\Double\InMemoryRideRetriever;
-use App\Tests\Double\KnownBugTrait;
 use App\Tests\Double\RecordingRidePusher;
 use App\Tests\Double\UMapResponses;
 use App\Tests\Fixture\Fixtures;
@@ -24,7 +23,6 @@ use Symfony\Component\Console\Tester\CommandTester;
  */
 final class ParseCommandTest extends TestCase
 {
-    use KnownBugTrait;
 
     private const string MAP_ID = 'abc123';
     private const string MAP_URL = 'https://umap.openstreetmap.fr/de/datalayer/abc123/';
@@ -165,9 +163,20 @@ final class ParseCommandTest extends TestCase
     }
 
     #[Test]
-    public function featuresWithUnparseableTimeAreSilentlySkipped(): void
+    public function featuresWithDecoratedTimeAreKept(): void
     {
-        $this->givenLayer([self::berlinFeature('Berlin', zeit: '15:00 ()')]);
+        $this->givenLayer([self::berlinFeature('Berlin', zeit: '15:00 (15:00 - 17:00)')]);
+
+        $this->runCommand();
+
+        self::assertStringContainsString('Should I post those 1 rides', $this->display());
+        self::assertStringContainsString('2026-05-10 15:00', $this->display());
+    }
+
+    #[Test]
+    public function featuresWithInvalidDateAreSilentlySkipped(): void
+    {
+        $this->givenLayer([self::berlinFeature('Berlin', datum: 'irgendwann')]);
 
         $this->runCommand();
 
@@ -198,12 +207,8 @@ final class ParseCommandTest extends TestCase
         self::assertStringContainsString('Should I post those 1 rides', $this->display());
     }
 
-    /**
-     * Documents known bug #1: features are indexed by md5(name); the last feature with a
-     * given name wins, all others are dropped before they are even built.
-     */
     #[Test]
-    public function sameNameFeaturesCollapseToTheLastOne(): void
+    public function sameNameDifferentDateYieldsSeparateRides(): void
     {
         $this->givenLayer([
             self::berlinFeature('Wien', '09.05.2026', '10:00'),
@@ -213,24 +218,33 @@ final class ParseCommandTest extends TestCase
         $this->runCommand();
 
         $display = $this->display();
-        self::assertStringContainsString('Should I post those 1 rides', $display);
+        self::assertStringContainsString('Should I post those 2 rides', $display);
+        self::assertStringContainsString('2026-05-09 10:00', $display);
         self::assertStringContainsString('2026-05-10 14:00', $display);
-        self::assertStringNotContainsString('2026-05-09', $display);
     }
 
     #[Test]
-    public function knownBugSameNameDifferentDateShouldYieldSeparateRides(): void
+    public function sameNameAndDateDifferentStartYieldsSeparateRides(): void
     {
-        $this->assertKnownBugStillPresent('CLAUDE.md known bug #1, ParseCommand.php:55', function (): void {
-            $this->givenLayer([
-                self::berlinFeature('Wien', '09.05.2026', '10:00'),
-                self::berlinFeature('Wien', '10.05.2026', '14:00'),
-            ]);
+        $first = self::berlinFeature('Wien');
+        $second = self::berlinFeature('Wien');
+        $second->properties->Start = 'Karlsplatz';
 
-            $this->runCommand();
+        $this->givenLayer([$first, $second]);
 
-            self::assertStringContainsString('Should I post those 2 rides', $this->display());
-        });
+        $this->runCommand();
+
+        self::assertStringContainsString('Should I post those 2 rides', $this->display());
+    }
+
+    #[Test]
+    public function identicalFeaturesAreDeduplicated(): void
+    {
+        $this->givenLayer([self::berlinFeature('Wien'), self::berlinFeature('Wien')]);
+
+        $this->runCommand();
+
+        self::assertStringContainsString('Should I post those 1 rides', $this->display());
     }
 
     #[Test]
@@ -321,31 +335,17 @@ final class ParseCommandTest extends TestCase
         self::assertStringContainsString('Should I post those 0 rides', $this->display());
     }
 
-    /**
-     * Bug: --city-filter dereferences getCity() without a null check, so any ride whose
-     * city could not be matched crashes the command.
-     */
     #[Test]
-    public function cityFilterCrashesOnRidesWithoutMatchedCity(): void
+    public function cityFilterSkipsRidesWithoutMatchedCity(): void
     {
-        $this->givenLayer([self::berlinFeature('Atlantis')]);
-
-        $this->expectException(\Error::class);
-        $this->expectExceptionMessageMatches('/getName\(\) on null/');
+        $this->cityFetcher->returnForCoord([Fixtures::city('Berlin', 'berlin')]);
+        $this->givenLayer([self::berlinFeature('Atlantis'), self::berlinFeature('Berlin')]);
 
         $this->runCommand(['--city-filter' => 'Berlin']);
-    }
 
-    #[Test]
-    public function knownBugCityFilterShouldSkipRidesWithoutCity(): void
-    {
-        $this->assertKnownBugStillPresent('ParseCommand.php:85 getCity()->getName() on null city', function (): void {
-            $this->givenLayer([self::berlinFeature('Atlantis')]);
-
-            $this->runCommand(['--city-filter' => 'Berlin']);
-
-            self::assertStringContainsString('Should I post those 0 rides', $this->display());
-        });
+        $display = $this->display();
+        self::assertStringContainsString('Should I post those 1 rides', $display);
+        self::assertStringNotContainsString('Atlantis', $display);
     }
 
     #[Test]
@@ -390,6 +390,23 @@ final class ParseCommandTest extends TestCase
         self::assertStringContainsString('not found', $this->display());
         self::assertCount(1, $this->ridePusher->postedRides);
         self::assertSame('kidical-mass-berlin-pankow-mai-2026', $this->ridePusher->postedRides[0]->getSlug());
+    }
+
+    #[Test]
+    public function failedCreateIsReportedAndDoesNotStopTheRun(): void
+    {
+        $this->cityFetcher->returnForCoord([Fixtures::city('Berlin', 'berlin')]);
+        $this->ridePusher->failPutFor('kidical-mass-berlin-mai-2026', new \RuntimeException('500 Internal Server Error'));
+        $this->givenLayer([self::berlinFeature('Berlin'), self::berlinFeature('Berlin Pankow')]);
+
+        $exitCode = $this->runCommand(answer: 'y');
+
+        self::assertSame(Command::SUCCESS, $exitCode);
+        $display = $this->display();
+        self::assertStringContainsString('could not be created', $display);
+        self::assertStringContainsString('500 Internal Server Error', $display);
+        self::assertCount(1, $this->ridePusher->putRides);
+        self::assertSame('kidical-mass-berlin-pankow-mai-2026', $this->ridePusher->putRides[0]->getSlug());
     }
 
     #[Test]

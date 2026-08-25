@@ -184,11 +184,10 @@ final class CityFetcherTest extends TestCase
         yield 'country suffix (AU) is removed' => ['Graz (AU)', 'Graz'];
         yield 'country suffix (CH) is removed' => ['Zürich (CH)', 'Zürich'];
         yield 'plain Braunau is mapped' => ['Braunau', 'Braunau am Inn'];
-        // Suffix stripping leaves a trailing space and trim() only runs after the lookup,
-        // so "Braunau (AU)" misses the "Braunau" mapping key.
-        yield 'suffix leaves trailing space that defeats the mapping' => ['Braunau (AU)', 'Braunau'];
-        yield 'Wiener Neustadt with suffix hits trailing-space mapping key' => ['Wiener Neustadt (AU)', 'Wien'];
-        yield 'Wiener Neustadt without suffix is unmapped' => ['Wiener Neustadt', 'Wiener Neustadt'];
+        yield 'country suffix is stripped before the mapping lookup' => ['Braunau (AU)', 'Braunau am Inn'];
+        yield 'Wiener Neustadt with suffix is mapped' => ['Wiener Neustadt (AU)', 'Wien'];
+        yield 'Wiener Neustadt without suffix is mapped too' => ['Wiener Neustadt', 'Wien'];
+        yield 'mapped value is trimmed' => ['  Frankfurt am Main  ', 'Frankfurt'];
         yield 'Wien Neustadt maps to Wien' => ['Wien Neustadt', 'Wien'];
         yield 'mapping is case sensitive' => ['frankfurt am main', 'frankfurt am main'];
         yield 'Kehl/Strasbourg with FR suffix is not mapped (suffix stripped first)' => ['Kehl am Rhein / Strasbourg (FR)', 'Kehl am Rhein / Strasbourg'];

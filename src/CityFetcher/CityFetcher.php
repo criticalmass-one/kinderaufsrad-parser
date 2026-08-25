@@ -11,10 +11,12 @@ use Symfony\Component\Serializer\Normalizer\ArrayDenormalizer;
 use Symfony\Component\Serializer\Normalizer\JsonSerializableNormalizer;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
+use Symfony\Component\Serializer\SerializerInterface;
 
 class CityFetcher implements CityFetcherInterface
 {
     protected Client $client;
+    protected SerializerInterface $serializer;
 
     public function __construct(string $criticalmassHostname)
     {
@@ -127,7 +129,7 @@ class CityFetcher implements CityFetcherInterface
             'Freiburg im Breisgau' => 'Freiburg',
             'Recklinghausen-Süd' => 'Recklinghausen',
             'Stuttgart-Vaihingen' => 'Stuttgart',
-            'Wiener Neustadt ' => 'Wien',
+            'Wiener Neustadt' => 'Wien',
             'Wentorf bei Hamburg' => 'Wentorf',
             'Recklinghausen-Süd' => 'Recklinghausen',
             'Neumarkt i.d.Opf.' => 'Neumarkt in der Oberpfalz',
@@ -136,12 +138,8 @@ class CityFetcher implements CityFetcherInterface
             'Kehl am Rhein / Strasbourg (FR)' => 'Kehl am Rhein',
         ];
 
-        $name = str_replace(['(AU)', '(AU )', '(CH)', '(FR)', '(USA)', '(UK)', '(PT)', '(LU)', '(USA)'], '', $name);
+        $name = trim(str_replace(['(AU)', '(AU )', '(CH)', '(FR)', '(USA)', '(UK)', '(PT)', '(LU)'], '', $name));
 
-        if (array_key_exists($name, $mapping)) {
-            $name = $mapping[$name];
-        }
-
-        return trim($name);
+        return $mapping[$name] ?? $name;
     }
 }

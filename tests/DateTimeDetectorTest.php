@@ -44,29 +44,26 @@ class DateTimeDetectorTest extends TestCase
     }
 
     /**
-     * Pre-existing data sets that fail on the base branch: DateTimeDetector never strips a
-     * leading "*" (it only strips "x"/"X"), so these specs currently yield null. Kept as
-     * incomplete instead of failing until the detector learns to ignore the marker.
+     * Leading "*" / "x" markers flag entries in the source list and must be ignored.
      */
-    #[DataProvider('leadingAsteriskDataProvider')]
-    public function testLeadingAsteriskIsNotSupportedYet(string $dateTimeSpec, string $expectedDateTime): void
+    #[DataProvider('leadingMarkerDataProvider')]
+    public function testLeadingMarkersAreIgnored(string $dateTimeSpec, string $expectedDateTime): void
     {
         $dateTime = DateTimeDetector::detect($dateTimeSpec, 'Europe/Berlin');
 
-        if ($dateTime !== null) {
-            $this->assertEquals($expectedDateTime, $dateTime->format('Y-m-d H:i'));
-
-            return;
-        }
-
-        $this->markTestIncomplete(sprintf('Known gap: DateTimeDetector::detect() returns null for "%s" (leading "*" is not stripped).', $dateTimeSpec));
+        $this->assertNotNull($dateTime);
+        $this->assertEquals($expectedDateTime, $dateTime->format('Y-m-d H:i'));
+        $this->assertSame('Europe/Berlin', $dateTime->getTimezone()->getName());
     }
 
-    public static function leadingAsteriskDataProvider(): array
+    public static function leadingMarkerDataProvider(): array
     {
         return [
             ['*26. September 2020, 14.00 Uhr', '2020-09-26 14:00'],
             ['*26. September 2020, 14.00 Uhr  ', '2020-09-26 14:00'],
+            ['* 26. September 2020, 14.00 Uhr', '2020-09-26 14:00'],
+            ['x 20. September 2020, 15 Uhr', '2020-09-20 15:00'],
+            ['X20. September 2020, 15 Uhr', '2020-09-20 15:00'],
         ];
     }
 
@@ -87,47 +84,30 @@ class DateTimeDetectorTest extends TestCase
         $this->assertNull(DateTimeDetector::detect('garbage', 'Europe/Berlin'));
     }
 
-    /**
-     * Carbon treats an empty spec as "now": the detector does not guard against it.
-     */
     #[Test]
-    public function emptySpecYieldsCurrentTime(): void
+    public function emptySpecYieldsNull(): void
     {
-        $this->assertSame('2026-04-01 12:00', DateTimeDetector::detect('', 'Europe/Berlin')?->format('Y-m-d H:i'));
+        $this->assertNull(DateTimeDetector::detect('', 'Europe/Berlin'));
+        $this->assertNull(DateTimeDetector::detect('   ', 'Europe/Berlin'));
+        $this->assertNull(DateTimeDetector::detect('*', 'Europe/Berlin'));
     }
 
-    /**
-     * The "x" marker is only stripped by the second strategy, but the first strategy already
-     * succeeds by interpreting "x" as the military timezone X (UTC-11).
-     */
-    #[Test]
-    public function leadingXIsParsedAsMilitaryTimezoneInsteadOfBeingStripped(): void
+    /** @return iterable<string, array{0: string, 1: string}> */
+    public static function germanSpecProvider(): iterable
     {
-        $dateTime = DateTimeDetector::detect('x 20. September 2020, 15 Uhr', 'Europe/Berlin');
-
-        $this->assertNotNull($dateTime);
-        $this->assertSame('2020-09-20 15:00', $dateTime->format('Y-m-d H:i'));
-        $this->assertSame('X', $dateTime->getTimezone()->getName());
-        $this->assertSame('-11:00', $dateTime->format('P'));
+        yield 'German March' => ['19. März 2021, 11 Uhr', '2021-03-19 11:00'];
+        yield 'German March with HH.MM' => ['19. März 2021, 11.30 Uhr', '2021-03-19 11:30'];
+        yield 'Septmber typo' => ['3. Septmber 2022, 14.00 Uhr', '2022-09-03 14:00'];
+        yield 'leading weekday' => ['Samstag, 19. September 2020, 11 Uhr', '2020-09-19 11:00'];
+        yield 'leading weekday without comma' => ['Sonntag 1. Mai 2022 10 Uhr', '2022-05-01 10:00'];
+        yield 'other German months' => ['24. Dezember 2021, 16 Uhr', '2021-12-24 16:00'];
+        yield 'lower-case month' => ['5. juni 2022, 14 Uhr', '2022-06-05 14:00'];
     }
 
-    /** @return iterable<string, array{0: string}> */
-    public static function unsupportedSpecProvider(): iterable
-    {
-        // 'März' is replaced with '03.' which yields "19. 03. 2021 ..." — not parseable.
-        yield 'German March' => ['19. März 2021, 11 Uhr'];
-        yield 'Septmber typo' => ['3. Septmber 2022, 14.00 Uhr'];
-        yield 'leading weekday' => ['Samstag, 19. September 2020, 11 Uhr'];
-    }
-
-    /**
-     * Documents that the März/Septmber substitutions in DateTimeDetector do not lead to a
-     * parseable string; the detector returns null for them today.
-     */
     #[Test]
-    #[DataProvider('unsupportedSpecProvider')]
-    public function specsWithGermanMonthSubstitutionsAreCurrentlyRejected(string $spec): void
+    #[DataProvider('germanSpecProvider')]
+    public function germanMonthAndWeekdayNamesAreUnderstood(string $spec, string $expected): void
     {
-        $this->assertNull(DateTimeDetector::detect($spec, 'Europe/Berlin'));
+        $this->assertSame($expected, DateTimeDetector::detect($spec, 'Europe/Berlin')?->format('Y-m-d H:i'));
     }
 }

@@ -48,11 +48,19 @@ class ParseCommand extends Command
         $cityFeatureList = [];
 
         foreach ($json->features as $feature) {
-            $name = $feature->properties->Name ?? $feature->properties->name;
+            // Several features legitimately share one name (e.g. one feature per route in Wien),
+            // so the duplicate key has to include date, time and start location.
+            $key = implode('|', array_map(
+                static fn(mixed $value): string => trim((string) $value),
+                [
+                    $feature->properties->Name ?? $feature->properties->name ?? '',
+                    $feature->properties->Datum ?? '',
+                    $feature->properties->Zeit ?? '',
+                    $feature->properties->Start ?? '',
+                ],
+            ));
 
-            $name = trim($name);
-
-            $cityFeatureList[md5($name)] = $feature;
+            $cityFeatureList[$key] = $feature;
         }
 
         $rideList = [];
@@ -82,7 +90,7 @@ class ParseCommand extends Command
         if ($input->getOption('city-filter')) {
             $cityName = $input->getOption('city-filter');
 
-            $rideList = array_filter($rideList, fn(Ride $ride): bool => $ride->getCity()->getName() === $cityName);
+            $rideList = array_filter($rideList, fn(Ride $ride): bool => $ride->getCity()?->getName() === $cityName);
         }
 
         $io->table(['City', 'Title', 'Description', 'Slug', 'DateTime', 'Location', 'Latitude', 'Longitude'], array_map(fn(Ride $ride): array => [$ride->getCity() ? $ride->getCity()->getName() : $ride->getCityName() . '?', $ride->getTitle(), $ride->getDescription(), $ride->getSlug(), $ride->hasDateTime() ? $ride->getDateTime()->format('Y-m-d H:i') : '', $ride->getLocation(), $ride->getLatitude(), $ride->getLongitude()], $rideList));
@@ -102,8 +110,7 @@ class ParseCommand extends Command
                     try {
                         $this->ridePusher->putRide($ride);
                     } catch (\Exception $exception) {
-                        dd($exception);
-                        $io->error(sprintf('Ride %s (%s) does already exist', $ride->getTitle(), $ride->getSlug()));
+                        $io->error(sprintf('Ride %s (%s) could not be created: %s', $ride->getTitle(), $ride->getSlug(), $exception->getMessage()));
                     }
                 }
 

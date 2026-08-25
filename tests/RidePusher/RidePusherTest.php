@@ -5,7 +5,6 @@ namespace App\Tests\RidePusher;
 use App\RidePusher\RidePusher;
 use App\Serializer\Normalizer\RideNormalizer;
 use App\Tests\Double\GuzzleMockTrait;
-use App\Tests\Double\KnownBugTrait;
 use App\Tests\Fixture\Fixtures;
 use Carbon\Carbon;
 use GuzzleHttp\Exception\ClientException;
@@ -20,7 +19,6 @@ use Symfony\Component\Serializer\SerializerInterface;
 final class RidePusherTest extends TestCase
 {
     use GuzzleMockTrait;
-    use KnownBugTrait;
 
     protected function setUp(): void
     {
@@ -101,11 +99,11 @@ final class RidePusherTest extends TestCase
     }
 
     /**
-     * Documents known bug #6 from the pusher's point of view: the request body contains
-     * ride_type "KIDICAL_MASS", which production answers with HTTP 500.
+     * criticalmass.in deserializes ride_type through BackedEnumNormalizer into RideTypeEnum
+     * (since 2026-05-11), so the payload has to carry the enum's backing value.
      */
     #[Test]
-    public function payloadContainsRideTypeString(): void
+    public function payloadCarriesRideTypeAsEnumValue(): void
     {
         $pusher = $this->pusher([new Response(200)]);
 
@@ -113,18 +111,6 @@ final class RidePusherTest extends TestCase
 
         $body = json_decode((string) $this->lastRequest()->getBody(), true, 512, JSON_THROW_ON_ERROR);
         self::assertSame('KIDICAL_MASS', $body['ride_type']);
-    }
-
-    #[Test]
-    public function knownBugPayloadShouldNotCarryRideType(): void
-    {
-        $this->assertKnownBugStillPresent('CLAUDE.md known bug #6 / API quirk: ride_type => HTTP 500', function (): void {
-            $pusher = $this->pusher([new Response(200)]);
-            $pusher->putRide(Fixtures::ride());
-
-            $body = json_decode((string) $this->lastRequest()->getBody(), true, 512, JSON_THROW_ON_ERROR);
-            self::assertTrue(!array_key_exists('ride_type', $body) || $body['ride_type'] === null);
-        });
     }
 
     /**
