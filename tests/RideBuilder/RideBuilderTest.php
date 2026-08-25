@@ -366,19 +366,15 @@ final class RideBuilderTest extends TestCase
         self::assertSame('2026-05-10 15:00', $this->builder->buildFromFeature($feature)?->getDateTime()?->format('Y-m-d H:i'));
     }
 
-    /**
-     * RideBuilder calls getCityListForCoord(), which is not declared on CityFetcherInterface:
-     * any interface-conforming implementation that lacks it breaks the builder at runtime.
-     */
     #[Test]
-    public function interfaceOnlyCityFetcherBreaksTheBuilder(): void
+    public function builderOnlyDependsOnTheCityFetcherInterface(): void
     {
-        $builder = new RideBuilder($this->createStub(CityFetcherInterface::class), new SlugGenerator());
+        $cityFetcher = $this->createStub(CityFetcherInterface::class);
+        $cityFetcher->method('getCityListForCoord')->willReturn([Fixtures::city('Berlin', 'berlin')]);
+
+        $builder = new RideBuilder($cityFetcher, new SlugGenerator());
         $feature = Fixtures::feature(['name' => 'Berlin', 'Datum' => '10.05.2026', 'Zeit' => '15:00']);
 
-        $this->expectException(\Error::class);
-        $this->expectExceptionMessageMatches('/getCityListForCoord/');
-
-        $builder->buildFromFeature($feature);
+        self::assertSame('Berlin', $builder->buildFromFeature($feature)?->getCity()?->getName());
     }
 }

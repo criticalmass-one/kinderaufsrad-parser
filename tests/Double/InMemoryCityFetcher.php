@@ -6,12 +6,7 @@ use App\CityFetcher\CityFetcherInterface;
 use App\Model\City;
 use App\Model\Ride;
 
-/**
- * Deterministic replacement for the HTTP-backed CityFetcher.
- *
- * Note: RideBuilder relies on getCityListForCoord(), which is NOT part of
- * CityFetcherInterface; this double provides it explicitly.
- */
+/** Deterministic replacement for the HTTP-backed CityFetcher. */
 final class InMemoryCityFetcher implements CityFetcherInterface
 {
     /** @var list<City> */
