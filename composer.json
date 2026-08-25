@@ -1,29 +1,33 @@
 {
+    "name": "criticalmass-one/kinderaufsrad-parser",
+    "description": "Parses Kidical Mass rides from a kinderaufsrad.org UMap layer and pushes them to the criticalmass.in API",
     "type": "project",
     "license": "proprietary",
     "require": {
-        "php": "^8.4",
+        "php": ">=8.4",
         "ext-ctype": "*",
         "ext-iconv": "*",
-        "cocur/slugify": "^4.6",
+        "cocur/slugify": "^4.7",
         "guzzlehttp/guzzle": "^7.0",
         "maxh/php-nominatim": "^2.2",
-        "nesbot/carbon": "^2.39",
-        "symfony/browser-kit": "^7.0",
-        "symfony/console": "^7.0",
-        "symfony/css-selector": "^7.0",
-        "symfony/dom-crawler": "^7.0",
-        "symfony/dotenv": "^7.0",
-        "symfony/flex": "^1.18",
-        "symfony/framework-bundle": "^7.0",
-        "symfony/phpunit-bridge": "^5.1",
-        "symfony/property-access": "^7.0",
-        "symfony/serializer": "^7.0",
-        "symfony/yaml": "^7.0"
+        "nesbot/carbon": "^3.8",
+        "symfony/browser-kit": "8.1.*",
+        "symfony/console": "8.1.*",
+        "symfony/css-selector": "8.1.*",
+        "symfony/dom-crawler": "8.1.*",
+        "symfony/dotenv": "8.1.*",
+        "symfony/flex": "^2",
+        "symfony/framework-bundle": "8.1.*",
+        "symfony/property-access": "8.1.*",
+        "symfony/runtime": "8.1.*",
+        "symfony/serializer": "8.1.*",
+        "symfony/yaml": "8.1.*"
     },
     "require-dev": {
-        "rector/rector": "^0.15.24",
-        "symfony/maker-bundle": "^1.21"
+        "phpunit/phpunit": "^12.5",
+        "rector/rector": "^2.0",
+        "symfony/maker-bundle": "^1.64",
+        "symfony/phpunit-bridge": "8.1.*"
     },
     "config": {
         "optimize-autoloader": true,
@@ -32,7 +36,8 @@
         },
         "sort-packages": true,
         "allow-plugins": {
-            "symfony/flex": true
+            "symfony/flex": true,
+            "symfony/runtime": true
         }
     },
     "autoload": {
@@ -55,12 +60,9 @@
         "symfony/polyfill-php56": "*"
     },
     "scripts": {
-        "auto-scripts": {
-        },
-        "post-install-cmd": [
-        ],
-        "post-update-cmd": [
-        ]
+        "auto-scripts": [],
+        "post-install-cmd": [],
+        "post-update-cmd": []
     },
     "conflict": {
         "symfony/symfony": "*"
@@ -68,7 +70,7 @@
     "extra": {
         "symfony": {
             "allow-contrib": false,
-            "require": "^6.0"
+            "require": "8.1.*"
         }
     }
 }

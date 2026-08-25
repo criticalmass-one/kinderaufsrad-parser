@@ -44,7 +44,7 @@ class Ride
         return $this->id;
     }
 
-    public function setCityName(string $cityName = null): self
+    public function setCityName(?string $cityName = null): self
     {
         $this->cityName = $cityName;
 
@@ -57,7 +57,7 @@ class Ride
 
     }
 
-    public function setCity(City $city = null): self
+    public function setCity(?City $city = null): self
     {
         $this->city = $city;
 
@@ -69,7 +69,7 @@ class Ride
         return $this->city;
     }
 
-    public function setDateTime(Carbon $dateTime = null): self
+    public function setDateTime(?Carbon $dateTime = null): self
     {
         $this->dateTime = $dateTime;
 
@@ -86,7 +86,7 @@ class Ride
         return $this->dateTime !== null;
     }
 
-    public function setLocation(string $location = null): self
+    public function setLocation(?string $location = null): self
     {
         $this->location = $location;
 
@@ -98,7 +98,7 @@ class Ride
         return $this->location;
     }
 
-    public function setLatitude(float $latitude = null): self
+    public function setLatitude(?float $latitude = null): self
     {
         $this->latitude = $latitude;
 
@@ -110,7 +110,7 @@ class Ride
         return $this->latitude;
     }
 
-    public function setLongitude(float $longitude = null): self
+    public function setLongitude(?float $longitude = null): self
     {
         $this->longitude = $longitude;
 
@@ -122,7 +122,7 @@ class Ride
         return $this->longitude;
     }
 
-    public function setSlug(string $slug = null): self
+    public function setSlug(?string $slug = null): self
     {
         $this->slug = $slug;
 
@@ -139,7 +139,7 @@ class Ride
         return $this->slug !== null;
     }
 
-    public function setTitle(string $title = null): self
+    public function setTitle(?string $title = null): self
     {
         $this->title = $title;
 

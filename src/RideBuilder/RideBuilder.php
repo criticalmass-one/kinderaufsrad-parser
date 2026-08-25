@@ -82,7 +82,7 @@ class RideBuilder implements RideBuilderInterface
         return sprintf('Kidical Mass %s %s', $ride->getCityName(), $ride->getDateTime()->format('d.m.Y'));
     }
 
-    protected function generateDateTime(string $dayString, string $timeString, City $city = null): ?Carbon
+    protected function generateDateTime(string $dayString, string $timeString, ?City $city = null): ?Carbon
     {
         $timezoneString = $city ? $city->getTimezone() : 'Europe/Berlin';
 

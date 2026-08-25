@@ -20,12 +20,12 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 )]
 class ParseCommand extends Command
 {
-    public function __construct(protected RideBuilderInterface $rideBuilder, protected RideRetrieverInterface $rideRetriever, protected RidePusherInterface $ridePusher, string $name = null)
+    public function __construct(protected RideBuilderInterface $rideBuilder, protected RideRetrieverInterface $rideRetriever, protected RidePusherInterface $ridePusher, ?string $name = null)
     {
         parent::__construct($name);
     }
 
-    protected function configure()
+    protected function configure(): void
     {
         $this->addArgument('map-identifier', InputArgument::REQUIRED, 'ID of geodata url')
             ->addOption('unexisting-only', null, InputOption::VALUE_NONE, 'Do not list already existing rides')
