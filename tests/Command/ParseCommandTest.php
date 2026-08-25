@@ -337,31 +337,17 @@ final class ParseCommandTest extends TestCase
         self::assertStringContainsString('Should I post those 0 rides', $this->display());
     }
 
-    /**
-     * Bug: --city-filter dereferences getCity() without a null check, so any ride whose
-     * city could not be matched crashes the command.
-     */
     #[Test]
-    public function cityFilterCrashesOnRidesWithoutMatchedCity(): void
+    public function cityFilterSkipsRidesWithoutMatchedCity(): void
     {
-        $this->givenLayer([self::berlinFeature('Atlantis')]);
-
-        $this->expectException(\Error::class);
-        $this->expectExceptionMessageMatches('/getName\(\) on null/');
+        $this->cityFetcher->returnForCoord([Fixtures::city('Berlin', 'berlin')]);
+        $this->givenLayer([self::berlinFeature('Atlantis'), self::berlinFeature('Berlin')]);
 
         $this->runCommand(['--city-filter' => 'Berlin']);
-    }
 
-    #[Test]
-    public function knownBugCityFilterShouldSkipRidesWithoutCity(): void
-    {
-        $this->assertKnownBugStillPresent('ParseCommand.php:85 getCity()->getName() on null city', function (): void {
-            $this->givenLayer([self::berlinFeature('Atlantis')]);
-
-            $this->runCommand(['--city-filter' => 'Berlin']);
-
-            self::assertStringContainsString('Should I post those 0 rides', $this->display());
-        });
+        $display = $this->display();
+        self::assertStringContainsString('Should I post those 1 rides', $display);
+        self::assertStringNotContainsString('Atlantis', $display);
     }
 
     #[Test]
