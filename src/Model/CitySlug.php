@@ -24,7 +24,7 @@ class CitySlug
         return $this->slug;
     }
 
-    public function setSlug(string $slug = null): self
+    public function setSlug(string $slug): self
     {
         $this->slug = $slug;
 
