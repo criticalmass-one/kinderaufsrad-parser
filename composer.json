@@ -1,4 +1,6 @@
 {
+    "name": "criticalmass-one/kinderaufsrad-parser",
+    "description": "Parses Kidical Mass rides from a kinderaufsrad.org UMap layer and pushes them to the criticalmass.in API",
     "type": "project",
     "license": "proprietary",
     "require": {
