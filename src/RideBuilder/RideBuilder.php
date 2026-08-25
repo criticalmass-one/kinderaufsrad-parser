@@ -29,16 +29,7 @@ class RideBuilder implements RideBuilderInterface
         $cityName = $this->extractCityName($feature);
         $ride->setCityName($cityName);
 
-        $cityList = $this->cityFetcher->getCityListForCoord($latitude, $longitude);
-
-        $city = null;
-
-        foreach ($cityList as $cityListItem) {
-            if (strpos($cityName, $cityListItem->getName()) !== false) {
-                $city = $cityListItem;
-                break;
-            }
-        }
+        $city = $this->matchCity($cityName, $this->cityFetcher->getCityListForCoord($latitude, $longitude));
 
         if ($city) {
             $ride->setCity($city);
@@ -75,6 +66,37 @@ class RideBuilder implements RideBuilderInterface
         $ride = $this->slugGenerator->generateForRide($ride);
 
         return $ride;
+    }
+
+    /**
+     * Picks the CM city whose name occurs in the OSM name as a whole word, longest name first,
+     * so that "Wiener Neustadt" is not attributed to "Wien" and "Ulm & Neu-Ulm" prefers
+     * "Neu-Ulm" over "Ulm".
+     *
+     * @param list<City> $cityList
+     */
+    protected function matchCity(string $cityName, array $cityList): ?City
+    {
+        usort($cityList, static fn(City $a, City $b): int => mb_strlen((string) $b->getName()) <=> mb_strlen((string) $a->getName()));
+
+        foreach ($cityList as $city) {
+            $name = (string) $city->getName();
+
+            if ($name === '') {
+                continue;
+            }
+
+            // Plain \b fails for names like "Frankfurt (Oder)" that end in a non-word character,
+            // so a boundary is only required on the sides where the name itself has a word character.
+            $leading = preg_match('/^[\p{L}\p{N}]/u', $name) ? '(?<![\p{L}\p{N}])' : '';
+            $trailing = preg_match('/[\p{L}\p{N}]$/u', $name) ? '(?![\p{L}\p{N}])' : '';
+
+            if (preg_match(sprintf('/%s%s%s/u', $leading, preg_quote($name, '/'), $trailing), $cityName)) {
+                return $city;
+            }
+        }
+
+        return null;
     }
 
     protected function generateTitle(Ride $ride): string

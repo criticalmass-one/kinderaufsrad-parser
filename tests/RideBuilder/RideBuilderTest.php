@@ -8,7 +8,6 @@ use App\RideBuilder\RideBuilder;
 use App\RideBuilder\SlugGenerator;
 use App\RideBuilder\SlugGeneratorInterface;
 use App\Tests\Double\InMemoryCityFetcher;
-use App\Tests\Double\KnownBugTrait;
 use App\Tests\Fixture\Fixtures;
 use Carbon\Carbon;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -17,8 +16,6 @@ use PHPUnit\Framework\TestCase;
 
 final class RideBuilderTest extends TestCase
 {
-    use KnownBugTrait;
-
     private InMemoryCityFetcher $cityFetcher;
     private RideBuilder $builder;
 
@@ -227,11 +224,11 @@ final class RideBuilderTest extends TestCase
     }
 
     #[Test]
-    public function firstMatchingCityInListOrderWins(): void
+    public function longestMatchingCityNameWinsRegardlessOfListOrder(): void
     {
         $this->cityFetcher->returnForCoord([
-            Fixtures::city('Neu-Ulm', 'neu-ulm', 2),
             Fixtures::city('Ulm', 'ulm', 1),
+            Fixtures::city('Neu-Ulm', 'neu-ulm', 2),
         ]);
         $feature = Fixtures::feature(['name' => 'Ulm & Neu-Ulm', 'Datum' => '10.05.2026', 'Zeit' => '15:00']);
 
@@ -256,38 +253,47 @@ final class RideBuilderTest extends TestCase
         self::assertNull($this->builder->buildFromFeature($feature)?->getCity());
     }
 
-    /**
-     * Documents known bug #5: the substring match has no word boundaries,
-     * so "Wiener Neustadt" is attributed to the CM city "Wien".
-     */
     #[Test]
-    public function substringMatchWithoutWordBoundariesAttributesWienerNeustadtToWien(): void
+    public function cityMatchRespectsWordBoundaries(): void
     {
-        $this->cityFetcher->returnForCoord([Fixtures::city('Wien', 'wien', timezone: 'Europe/Vienna')]);
+        $this->cityFetcher->returnForCoord([Fixtures::city('Wien', 'wien')]);
         $feature = Fixtures::feature(['name' => 'Wiener Neustadt', 'Datum' => '10.05.2026', 'Zeit' => '15:00'], 47.8, 16.25);
 
-        self::assertSame('Wien', $this->builder->buildFromFeature($feature)?->getCity()?->getName());
+        self::assertNull($this->builder->buildFromFeature($feature)?->getCity());
+    }
+
+    /** @return iterable<string, array{0: string, 1: string, 2: bool}> */
+    public static function wordBoundaryProvider(): iterable
+    {
+        yield 'prefix of a longer word' => ['Wien', 'Wiener Neustadt', false];
+        yield 'suffix of a longer word' => ['Ulm', 'Neu-Ulm', true];
+        yield 'glued to a following word' => ['Ulm', 'Ulmer Land', false];
+        yield 'district after the city' => ['Berlin', 'Berlin Lichtenberg', true];
+        yield 'city after the district' => ['Berlin', 'Lichtenberg, Berlin', true];
+        yield 'umlaut after the name' => ['Ber', 'Berün', false];
+        yield 'name ending in a non-word character' => ['Frankfurt (Oder)', 'Frankfurt (Oder)/Słubice', true];
+        yield 'name with a non-word suffix does not match its prefix' => ['Frankfurt (Oder)', 'Frankfurt am Main', false];
     }
 
     #[Test]
-    public function knownBugCityMatchShouldRespectWordBoundaries(): void
+    #[DataProvider('wordBoundaryProvider')]
+    public function cityMatchUsesWordBoundariesOnWordCharacterSides(string $cmName, string $osmName, bool $expectMatch): void
     {
-        $this->assertKnownBugStillPresent('CLAUDE.md known bug #5, RideBuilder.php:37', function (): void {
-            $this->cityFetcher->returnForCoord([Fixtures::city('Wien', 'wien')]);
-            $feature = Fixtures::feature(['name' => 'Wiener Neustadt', 'Datum' => '10.05.2026', 'Zeit' => '15:00'], 47.8, 16.25);
+        $this->cityFetcher->returnForCoord([Fixtures::city($cmName, 'cm')]);
+        $feature = Fixtures::feature(['name' => $osmName, 'Datum' => '10.05.2026', 'Zeit' => '15:00']);
 
-            self::assertNull($this->builder->buildFromFeature($feature)?->getCity());
-        });
+        $city = $this->builder->buildFromFeature($feature)?->getCity();
+
+        self::assertSame($expectMatch ? $cmName : null, $city?->getName());
     }
 
     #[Test]
-    public function cityWithEmptyNameMatchesEveryFeature(): void
+    public function cityWithEmptyNameNeverMatches(): void
     {
-        // strpos($haystack, '') === 0 on PHP 8 — a CM city without a name would match anything.
         $this->cityFetcher->returnForCoord([Fixtures::city('', 'anon')]);
         $feature = Fixtures::feature(['name' => 'Berlin', 'Datum' => '10.05.2026', 'Zeit' => '15:00']);
 
-        self::assertSame('', $this->builder->buildFromFeature($feature)?->getCity()?->getName());
+        self::assertNull($this->builder->buildFromFeature($feature)?->getCity());
     }
 
     #[Test]
