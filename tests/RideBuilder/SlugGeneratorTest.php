@@ -67,6 +67,7 @@ final class SlugGeneratorTest extends TestCase
         yield 'June' => ['2026-06-15', 'kidical-mass-berlin-juni-2026'];
         yield 'September' => ['2026-09-15', 'kidical-mass-berlin-september-2026'];
         yield 'December, year boundary' => ['2025-12-31 23:59', 'kidical-mass-berlin-dezember-2025'];
+        yield 'March is ASCII-folded' => ['2026-03-15', 'kidical-mass-berlin-maerz-2026'];
     }
 
     #[Test]
@@ -78,25 +79,12 @@ final class SlugGeneratorTest extends TestCase
         self::assertSame($expectedSlug, $this->generator->generateForRide($ride)->getSlug());
     }
 
-    /**
-     * The month name is not slugified, only lower-cased: March produces a non-ASCII slug.
-     */
     #[Test]
-    public function marchProducesSlugWithUmlaut(): void
+    public function slugOnlyContainsSlugSafeCharacters(): void
     {
-        $ride = Fixtures::ride('Berlin', dateTime: new Carbon('2026-03-15', 'Europe/Berlin'));
+        $ride = Fixtures::ride('Gießen', dateTime: new Carbon('2026-03-15', 'Europe/Berlin'));
 
-        self::assertSame('kidical-mass-berlin-märz-2026', $this->generator->generateForRide($ride)->getSlug());
-    }
-
-    #[Test]
-    public function knownIssueMonthNameShouldBeSlugSafe(): void
-    {
-        $this->assertKnownBugStillPresent('SlugGenerator.php:18-23 month name is not slugified', function (): void {
-            $ride = Fixtures::ride('Berlin', dateTime: new Carbon('2026-03-15', 'Europe/Berlin'));
-
-            self::assertMatchesRegularExpression('/^[a-z0-9-]+$/', (string) $this->generator->generateForRide($ride)->getSlug());
-        });
+        self::assertMatchesRegularExpression('/^[a-z0-9-]+$/', (string) $this->generator->generateForRide($ride)->getSlug());
     }
 
     #[Test]
@@ -149,22 +137,17 @@ final class SlugGeneratorTest extends TestCase
         self::assertSame('kidical-mass-berlin-juni-2026', $this->generator->generateForRide($ride)->getSlug());
     }
 
-    /**
-     * Side effect: Carbon::locale() mutates the (mutable) Carbon instance, so after slug
-     * generation the ride's date carries the German locale.
-     */
     #[Test]
-    public function switchesTheRideDateTimeLocaleToGerman(): void
+    public function doesNotChangeTheLocaleOfTheRideDateTime(): void
     {
         $dateTime = new Carbon('2026-05-10', 'Europe/Berlin');
         $ride = Fixtures::ride('Berlin', dateTime: $dateTime);
 
-        self::assertSame('May', $dateTime->monthName);
-
         $this->generator->generateForRide($ride);
 
-        self::assertSame('de', $dateTime->locale);
-        self::assertSame('Mai', $dateTime->monthName);
+        self::assertSame('en', $dateTime->locale);
+        self::assertSame('May', $dateTime->monthName);
+        self::assertSame('kidical-mass-berlin-mai-2026', $ride->getSlug());
     }
 
     /**

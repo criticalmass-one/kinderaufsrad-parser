@@ -13,14 +13,15 @@ class SlugGenerator implements SlugGeneratorInterface
             return $ride;
         }
 
-        $slugifiedCityName = (new Slugify())->slugify($ride->getCityName());
+        $slugify = new Slugify();
 
-        $monthName = $ride->getDateTime()->locale('de')->monthName;
+        $slugifiedCityName = $slugify->slugify($ride->getCityName());
+
+        // copy() keeps the German locale off the ride's own Carbon instance.
+        $monthName = $slugify->slugify($ride->getDateTime()->copy()->locale('de')->monthName);
         $year = $ride->getDateTime()->format('Y');
 
         $slug = sprintf('kidical-mass-%s-%s-%d', $slugifiedCityName, $monthName, $year);
-
-        $slug = strtolower($slug);
 
         $ride->setSlug($slug);
 
