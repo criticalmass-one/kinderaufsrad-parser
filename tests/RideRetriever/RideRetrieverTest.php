@@ -68,18 +68,17 @@ final class RideRetrieverTest extends TestCase
         $retriever->fetchBySlugs('berlin', 'kidical-mass-berlin-mai-2026');
     }
 
-    /**
-     * Bug: an API ride without ride_type (the API returns null for rides whose type is
-     * unset) cannot be deserialized because Ride::setRideType() is not nullable.
-     */
     #[Test]
-    public function fetchBySlugsFailsForRidesWithoutRideType(): void
+    public function fetchBySlugsAcceptsRidesWithoutRideType(): void
     {
-        $retriever = $this->retriever([new Response(200, [], Fixtures::rideApiJson(['ride_type' => null]))]);
+        // The API returns ride_type null for rides whose type is unset.
+        $retriever = $this->retriever([new Response(200, [], Fixtures::rideApiJson(['ride_type' => null, 'description' => null]))]);
 
-        $this->expectException(\TypeError::class);
+        $ride = $retriever->fetchBySlugs('berlin', 'kidical-mass-berlin-mai-2026');
 
-        $retriever->fetchBySlugs('berlin', 'kidical-mass-berlin-mai-2026');
+        self::assertInstanceOf(Ride::class, $ride);
+        self::assertNull($ride->getRideType());
+        self::assertNull($ride->getDescription());
     }
 
     #[Test]

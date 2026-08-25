@@ -75,25 +75,14 @@ final class RideTest extends TestCase
     }
 
     #[Test]
-    public function descriptionAndRideTypeDoNotAcceptNull(): void
+    public function descriptionAndRideTypeCanBeCleared(): void
     {
-        $ride = new Ride();
+        $ride = (new Ride())->setDescription('d')->setRideType('KIDICAL_MASS');
 
-        $this->expectException(\TypeError::class);
+        $ride->setDescription(null)->setRideType(null);
 
-        /** @phpstan-ignore argument.type */
-        $ride->setDescription(null);
-    }
-
-    #[Test]
-    public function rideTypeDoesNotAcceptNull(): void
-    {
-        $ride = new Ride();
-
-        $this->expectException(\TypeError::class);
-
-        /** @phpstan-ignore argument.type */
-        $ride->setRideType(null);
+        self::assertNull($ride->getDescription());
+        self::assertNull($ride->getRideType());
     }
 
     #[Test]

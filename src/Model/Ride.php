@@ -151,7 +151,7 @@ class Ride
         return $this->title;
     }
 
-    public function setDescription(string $description): self
+    public function setDescription(?string $description = null): self
     {
         $this->description = $description;
 
@@ -192,7 +192,7 @@ class Ride
         return $this->rideType;
     }
 
-    public function setRideType(string $rideType): self
+    public function setRideType(?string $rideType = null): self
     {
         $this->rideType = $rideType;
 
