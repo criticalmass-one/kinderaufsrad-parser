@@ -209,12 +209,8 @@ final class ParseCommandTest extends TestCase
         self::assertStringContainsString('Should I post those 1 rides', $this->display());
     }
 
-    /**
-     * Documents known bug #1: features are indexed by md5(name); the last feature with a
-     * given name wins, all others are dropped before they are even built.
-     */
     #[Test]
-    public function sameNameFeaturesCollapseToTheLastOne(): void
+    public function sameNameDifferentDateYieldsSeparateRides(): void
     {
         $this->givenLayer([
             self::berlinFeature('Wien', '09.05.2026', '10:00'),
@@ -224,24 +220,33 @@ final class ParseCommandTest extends TestCase
         $this->runCommand();
 
         $display = $this->display();
-        self::assertStringContainsString('Should I post those 1 rides', $display);
+        self::assertStringContainsString('Should I post those 2 rides', $display);
+        self::assertStringContainsString('2026-05-09 10:00', $display);
         self::assertStringContainsString('2026-05-10 14:00', $display);
-        self::assertStringNotContainsString('2026-05-09', $display);
     }
 
     #[Test]
-    public function knownBugSameNameDifferentDateShouldYieldSeparateRides(): void
+    public function sameNameAndDateDifferentStartYieldsSeparateRides(): void
     {
-        $this->assertKnownBugStillPresent('CLAUDE.md known bug #1, ParseCommand.php:55', function (): void {
-            $this->givenLayer([
-                self::berlinFeature('Wien', '09.05.2026', '10:00'),
-                self::berlinFeature('Wien', '10.05.2026', '14:00'),
-            ]);
+        $first = self::berlinFeature('Wien');
+        $second = self::berlinFeature('Wien');
+        $second->properties->Start = 'Karlsplatz';
 
-            $this->runCommand();
+        $this->givenLayer([$first, $second]);
 
-            self::assertStringContainsString('Should I post those 2 rides', $this->display());
-        });
+        $this->runCommand();
+
+        self::assertStringContainsString('Should I post those 2 rides', $this->display());
+    }
+
+    #[Test]
+    public function identicalFeaturesAreDeduplicated(): void
+    {
+        $this->givenLayer([self::berlinFeature('Wien'), self::berlinFeature('Wien')]);
+
+        $this->runCommand();
+
+        self::assertStringContainsString('Should I post those 1 rides', $this->display());
     }
 
     #[Test]

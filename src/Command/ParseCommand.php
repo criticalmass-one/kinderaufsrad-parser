@@ -48,11 +48,19 @@ class ParseCommand extends Command
         $cityFeatureList = [];
 
         foreach ($json->features as $feature) {
-            $name = $feature->properties->Name ?? $feature->properties->name;
+            // Several features legitimately share one name (e.g. one feature per route in Wien),
+            // so the duplicate key has to include date, time and start location.
+            $key = implode('|', array_map(
+                static fn(mixed $value): string => trim((string) ($value ?? '')),
+                [
+                    $feature->properties->Name ?? $feature->properties->name ?? '',
+                    $feature->properties->Datum ?? '',
+                    $feature->properties->Zeit ?? '',
+                    $feature->properties->Start ?? '',
+                ],
+            ));
 
-            $name = trim($name);
-
-            $cityFeatureList[md5($name)] = $feature;
+            $cityFeatureList[$key] = $feature;
         }
 
         $rideList = [];
