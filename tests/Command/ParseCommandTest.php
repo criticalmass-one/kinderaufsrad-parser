@@ -165,9 +165,20 @@ final class ParseCommandTest extends TestCase
     }
 
     #[Test]
-    public function featuresWithUnparseableTimeAreSilentlySkipped(): void
+    public function featuresWithDecoratedTimeAreKept(): void
     {
-        $this->givenLayer([self::berlinFeature('Berlin', zeit: '15:00 ()')]);
+        $this->givenLayer([self::berlinFeature('Berlin', zeit: '15:00 (15:00 - 17:00)')]);
+
+        $this->runCommand();
+
+        self::assertStringContainsString('Should I post those 1 rides', $this->display());
+        self::assertStringContainsString('2026-05-10 15:00', $this->display());
+    }
+
+    #[Test]
+    public function featuresWithInvalidDateAreSilentlySkipped(): void
+    {
+        $this->givenLayer([self::berlinFeature('Berlin', datum: 'irgendwann')]);
 
         $this->runCommand();
 
