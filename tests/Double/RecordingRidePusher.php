@@ -17,6 +17,9 @@ final class RecordingRidePusher implements RidePusherInterface
     /** @var array<string, \Exception> slug => exception to throw on POST */
     private array $postFailures = [];
 
+    /** @var array<string, \Exception> slug => exception to throw on PUT */
+    private array $putFailures = [];
+
     public function failPostFor(string $slug, \Exception $exception): self
     {
         $this->postFailures[$slug] = $exception;
@@ -24,8 +27,19 @@ final class RecordingRidePusher implements RidePusherInterface
         return $this;
     }
 
+    public function failPutFor(string $slug, \Exception $exception): self
+    {
+        $this->putFailures[$slug] = $exception;
+
+        return $this;
+    }
+
     public function putRide(Ride $ride): RidePusherInterface
     {
+        if (isset($this->putFailures[(string) $ride->getSlug()])) {
+            throw $this->putFailures[(string) $ride->getSlug()];
+        }
+
         $this->putRides[] = $ride;
 
         return $this;

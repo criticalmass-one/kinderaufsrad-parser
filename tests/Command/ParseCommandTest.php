@@ -395,6 +395,23 @@ final class ParseCommandTest extends TestCase
     }
 
     #[Test]
+    public function failedCreateIsReportedAndDoesNotStopTheRun(): void
+    {
+        $this->cityFetcher->returnForCoord([Fixtures::city('Berlin', 'berlin')]);
+        $this->ridePusher->failPutFor('kidical-mass-berlin-mai-2026', new \RuntimeException('500 Internal Server Error'));
+        $this->givenLayer([self::berlinFeature('Berlin'), self::berlinFeature('Berlin Pankow')]);
+
+        $exitCode = $this->runCommand(answer: 'y');
+
+        self::assertSame(Command::SUCCESS, $exitCode);
+        $display = $this->display();
+        self::assertStringContainsString('could not be created', $display);
+        self::assertStringContainsString('500 Internal Server Error', $display);
+        self::assertCount(1, $this->ridePusher->putRides);
+        self::assertSame('kidical-mass-berlin-pankow-mai-2026', $this->ridePusher->putRides[0]->getSlug());
+    }
+
+    #[Test]
     public function onlyExactYesAnswerTriggersPushing(): void
     {
         $this->cityFetcher->returnForCoord([Fixtures::city('Berlin', 'berlin')]);
