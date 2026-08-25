@@ -4,7 +4,6 @@ namespace App\Tests\RideBuilder;
 
 use App\Model\Ride;
 use App\RideBuilder\SlugGenerator;
-use App\Tests\Double\KnownBugTrait;
 use App\Tests\Fixture\Fixtures;
 use Carbon\Carbon;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -13,8 +12,6 @@ use PHPUnit\Framework\TestCase;
 
 final class SlugGeneratorTest extends TestCase
 {
-    use KnownBugTrait;
-
     private SlugGenerator $generator;
 
     protected function setUp(): void
@@ -150,11 +147,60 @@ final class SlugGeneratorTest extends TestCase
         self::assertSame('kidical-mass-berlin-mai-2026', $ride->getSlug());
     }
 
-    /**
-     * Documents known bug #4: two rides of the same OSM city in the same month get the same slug.
-     */
     #[Test]
-    public function ridesOfSameCityAndMonthCollide(): void
+    public function routeNumberFromDescriptionIsUsedAsDiscriminator(): void
+    {
+        $first = Fixtures::ride('Wien', dateTime: new Carbon('2026-05-10 10:00', 'Europe/Vienna'))->setDescription('Strecke 1: Favoriten');
+        $second = Fixtures::ride('Wien', dateTime: new Carbon('2026-05-10 10:00', 'Europe/Vienna'))->setDescription('Familien-Route, strecke 12');
+
+        self::assertSame('kidical-mass-wien-mai-2026-strecke-1', $this->generator->generateForRide($first)->getSlug());
+        self::assertSame('kidical-mass-wien-mai-2026-strecke-12', $this->generator->generateForRide($second)->getSlug());
+    }
+
+    #[Test]
+    public function routeNumberIsNotTakenFromOtherWordsEndingInStrecke(): void
+    {
+        $ride = Fixtures::ride('Berlin')->setDescription('Rundstrecke 5 km');
+
+        self::assertSame('kidical-mass-berlin-mai-2026', $this->generator->generateForRide($ride)->getSlug());
+    }
+
+    #[Test]
+    public function secondRideOfSameCityAndMonthGetsStartTimeSuffix(): void
+    {
+        $first = Fixtures::ride('Wien', dateTime: new Carbon('2026-05-10 10:00', 'Europe/Vienna'));
+        $second = Fixtures::ride('Wien', dateTime: new Carbon('2026-05-24 14:30', 'Europe/Vienna'));
+
+        $this->generator->generateForRide($first);
+        $this->generator->generateForRide($second);
+
+        self::assertSame('kidical-mass-wien-mai-2026', $first->getSlug());
+        self::assertSame('kidical-mass-wien-mai-2026-1430', $second->getSlug());
+    }
+
+    #[Test]
+    public function ridesWithSameStartTimeGetACounter(): void
+    {
+        $rides = [
+            Fixtures::ride('Wien', dateTime: new Carbon('2026-05-10 14:00', 'Europe/Vienna')),
+            Fixtures::ride('Wien', dateTime: new Carbon('2026-05-17 14:00', 'Europe/Vienna')),
+            Fixtures::ride('Wien', dateTime: new Carbon('2026-05-24 14:00', 'Europe/Vienna')),
+            Fixtures::ride('Wien', dateTime: new Carbon('2026-05-31 14:00', 'Europe/Vienna')),
+        ];
+
+        $slugs = array_map(fn(Ride $ride): ?string => $this->generator->generateForRide($ride)->getSlug(), $rides);
+
+        self::assertSame([
+            'kidical-mass-wien-mai-2026',
+            'kidical-mass-wien-mai-2026-1400',
+            'kidical-mass-wien-mai-2026-1400-2',
+            'kidical-mass-wien-mai-2026-1400-3',
+        ], $slugs);
+        self::assertCount(4, array_unique($slugs));
+    }
+
+    #[Test]
+    public function slugsAreUniquePerRide(): void
     {
         $first = Fixtures::ride('Wien', dateTime: new Carbon('2026-05-10 10:00', 'Europe/Vienna'))->setDescription('Strecke 1');
         $second = Fixtures::ride('Wien', dateTime: new Carbon('2026-05-10 14:00', 'Europe/Vienna'))->setDescription('Strecke 2');
@@ -162,21 +208,29 @@ final class SlugGeneratorTest extends TestCase
         $this->generator->generateForRide($first);
         $this->generator->generateForRide($second);
 
-        self::assertSame($first->getSlug(), $second->getSlug());
+        self::assertNotSame($first->getSlug(), $second->getSlug());
     }
 
     #[Test]
-    public function knownBugSlugsShouldBeUniquePerRide(): void
+    public function regeneratingForTheSameRideKeepsItsSlug(): void
     {
-        $this->assertKnownBugStillPresent('CLAUDE.md known bug #4, SlugGenerator.php:21', function (): void {
-            $first = Fixtures::ride('Wien', dateTime: new Carbon('2026-05-10 10:00', 'Europe/Vienna'))->setDescription('Strecke 1');
-            $second = Fixtures::ride('Wien', dateTime: new Carbon('2026-05-10 14:00', 'Europe/Vienna'))->setDescription('Strecke 2');
+        $ride = Fixtures::ride('Wien', dateTime: new Carbon('2026-05-10 10:00', 'Europe/Vienna'));
 
-            $this->generator->generateForRide($first);
-            $this->generator->generateForRide($second);
+        $this->generator->generateForRide($ride);
+        $this->generator->generateForRide($ride);
 
-            self::assertNotSame($first->getSlug(), $second->getSlug());
-        });
+        self::assertSame('kidical-mass-wien-mai-2026', $ride->getSlug());
+    }
+
+    #[Test]
+    public function slugsOfGarbageCollectedRidesAreFreedAgain(): void
+    {
+        $this->generator->generateForRide(Fixtures::ride('Wien', dateTime: new Carbon('2026-05-10 10:00', 'Europe/Vienna')));
+        gc_collect_cycles();
+
+        $ride = Fixtures::ride('Wien', dateTime: new Carbon('2026-05-10 14:00', 'Europe/Vienna'));
+
+        self::assertSame('kidical-mass-wien-mai-2026', $this->generator->generateForRide($ride)->getSlug());
     }
 
     #[Test]
