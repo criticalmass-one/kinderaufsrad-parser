@@ -129,7 +129,7 @@ class CityFetcher implements CityFetcherInterface
             'Freiburg im Breisgau' => 'Freiburg',
             'Recklinghausen-Süd' => 'Recklinghausen',
             'Stuttgart-Vaihingen' => 'Stuttgart',
-            'Wiener Neustadt ' => 'Wien',
+            'Wiener Neustadt' => 'Wien',
             'Wentorf bei Hamburg' => 'Wentorf',
             'Recklinghausen-Süd' => 'Recklinghausen',
             'Neumarkt i.d.Opf.' => 'Neumarkt in der Oberpfalz',
@@ -138,12 +138,8 @@ class CityFetcher implements CityFetcherInterface
             'Kehl am Rhein / Strasbourg (FR)' => 'Kehl am Rhein',
         ];
 
-        $name = str_replace(['(AU)', '(AU )', '(CH)', '(FR)', '(USA)', '(UK)', '(PT)', '(LU)', '(USA)'], '', $name);
+        $name = trim(str_replace(['(AU)', '(AU )', '(CH)', '(FR)', '(USA)', '(UK)', '(PT)', '(LU)'], '', $name));
 
-        if (array_key_exists($name, $mapping)) {
-            $name = $mapping[$name];
-        }
-
-        return trim($name);
+        return $mapping[$name] ?? $name;
     }
 }
