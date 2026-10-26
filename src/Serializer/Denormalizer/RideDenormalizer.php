@@ -14,7 +14,7 @@ class RideDenormalizer implements DenormalizerInterface
         private CityDenormalizer $cityDenormalizer
     ) {}
 
-    public function denormalize($data, $type, $format = null, array $context = []): Ride
+    public function denormalize(mixed $data, string $type, ?string $format = null, array $context = []): Ride
     {
         if (!is_array($data)) {
             throw new NotNormalizableValueException('Expected array data for Ride');

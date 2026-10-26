@@ -3,13 +3,12 @@
 namespace App\Tests;
 
 use App\RideBuilder\DateTimeDetector;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class DateTimeDetectorTest extends TestCase
 {
-    /**
-     * @dataProvider dateTimeDataProvider
-     */
+    #[DataProvider('dateTimeDataProvider')]
     public function testDateTimeDetector(string $dateTimeSpec, string $expectedDateTime): void
     {
         $dateTime = DateTimeDetector::detect($dateTimeSpec, 'Europe/Berlin');
@@ -19,7 +18,7 @@ class DateTimeDetectorTest extends TestCase
         $this->assertEquals($expectedDateTime, $dateTime->format('Y-m-d H:i'));
     }
 
-    public function dateTimeDataProvider(): array
+    public static function dateTimeDataProvider(): array
     {
         return [
             ['19. September 2020, 11.00 Uhr', '2020-09-19 11:00'],
