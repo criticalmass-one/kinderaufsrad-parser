@@ -3,9 +3,6 @@
 namespace App\RideRetriever;
 
 use App\Model\Ride;
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\ClientException;
-use JMS\Serializer\SerializerInterface;
 
 interface RideRetrieverInterface
 {

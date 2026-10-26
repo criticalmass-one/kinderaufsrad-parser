@@ -10,12 +10,12 @@ use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 class CityDenormalizer implements DenormalizerInterface
 {
 
-    public function supportsDenormalization($data, $type, $format = null, array $context = []): bool
+    public function supportsDenormalization(mixed $data, string $type, ?string $format = null, array $context = []): bool
     {
         return $type === City::class;
     }
 
-    public function denormalize($data, $type, $format = null, array $context = []): City
+    public function denormalize(mixed $data, string $type, ?string $format = null, array $context = []): City
     {
         if (!is_array($data)) {
             throw new NotNormalizableValueException('Expected data to be an array.');

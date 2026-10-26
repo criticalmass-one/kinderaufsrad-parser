@@ -3,7 +3,6 @@
 namespace App\RideBuilder;
 
 use Carbon\Carbon;
-use function foo\func;
 
 class DateTimeDetector
 {

@@ -3,8 +3,6 @@
 namespace App\RidePusher;
 
 use App\Model\Ride;
-use GuzzleHttp\Client;
-use JMS\Serializer\SerializerInterface;
 
 interface RidePusherInterface
 {

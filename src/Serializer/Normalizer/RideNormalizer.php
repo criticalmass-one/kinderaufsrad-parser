@@ -7,15 +7,15 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 class RideNormalizer implements NormalizerInterface
 {
-    public function supportsNormalization($data, $format = null, array $context = []): bool
+    public function supportsNormalization(mixed $data, ?string $format = null, array $context = []): bool
     {
         return $data instanceof Ride;
     }
 
-    public function normalize($object, $format = null, array $context = []): array
+    public function normalize(mixed $data, ?string $format = null, array $context = []): array
     {
         /** @var Ride $ride */
-        $ride = $object;
+        $ride = $data;
 
         $city = $ride->getCity();
 
